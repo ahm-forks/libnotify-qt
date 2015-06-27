@@ -22,7 +22,12 @@ set(LIB_MOC_HDRS
 
 qt4_wrap_cpp(LIB_MOC_SRCS ${LIB_MOC_HDRS})
 
-add_library(libnotify-qt ${LIB_MOC_SRCS} ${LIB_SRCS})
+add_library(libnotify-qt_obj OBJECT ${LIB_MOC_SRCS} ${LIB_SRCS})
+add_library(libnotify-qt SHARED $<TARGET_OBJECTS:libnotify-qt_obj>)
+add_library(libnotify-qt_static STATIC $<TARGET_OBJECTS:libnotify-qt_obj>)
+
+set_property(TARGET libnotify-qt PROPERTY POSITION_INDEPENDENT_CODE 1)
+set_target_properties(libnotify-qt PROPERTIES VERSION 0 SOVERSION 0.0.0)
 
 install(TARGETS libnotify-qt DESTINATION lib)
 install(FILES src/Notification.h DESTINATION include)
