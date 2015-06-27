@@ -1,0 +1,9 @@
+CMakeCache.txt
+CMakeFiles/
+Makefile
+build/
+cmake_install.cmake
+liblibnotify-qt.so*
+liblibnotify-qt_static*
+src/moc_*
+
