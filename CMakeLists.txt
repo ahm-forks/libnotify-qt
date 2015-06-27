@@ -5,6 +5,7 @@ find_package(Qt4 REQUIRED)
 
 set(CMAKE_BUILD_TYPE Release)
 
+set(QT_USE_QTGUI FALSE)
 set(QT_USE_QTCORE TRUE)
 set(QT_USE_QTDBUS TRUE)
 
@@ -22,7 +23,15 @@ set(LIB_MOC_HDRS
 
 qt4_wrap_cpp(LIB_MOC_SRCS ${LIB_MOC_HDRS})
 
-add_library(libnotify-qt ${LIB_MOC_SRCS} ${LIB_SRCS})
+add_library(notify-qt SHARED ${LIB_MOC_SRCS} ${LIB_SRCS})
+add_library(notify-qt_static STATIC ${LIB_MOC_SRCS} ${LIB_SRCS})
 
-install(TARGETS libnotify-qt DESTINATION lib)
-install(FILES src/Notification.h DESTINATION include)
+set_property(TARGET notify-qt PROPERTY POSITION_INDEPENDENT_CODE 1)
+set_target_properties(notify-qt PROPERTIES VERSION 0 SOVERSION 0.0.0)
+
+target_link_libraries(notify-qt QtDBus)
+target_link_libraries(notify-qt QtCore)
+
+install(TARGETS notify-qt DESTINATION lib)
+install(TARGETS notify-qt_static DESTINATION lib)
+install(FILES ./src/Notification.h DESTINATION include/notify-qt)
