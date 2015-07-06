@@ -43,6 +43,6 @@ install(TARGETS notify-qt DESTINATION lib)
 endif(${BUILD_SHARED_LIBS})
 
 install(TARGETS notify-qt_static DESTINATION lib)
-install(FILES src/Notification.h DESTINATION include/notify-qt)
+install(FILES src/Notification.h DESTINATION include/libnotify-qt)
 install(FILES ${PROJECT_BINARY_DIR}/libnotify-qt.pc DESTINATION lib/pkgconfig)
 install(FILES ${PROJECT_BINARY_DIR}/libnotify-qt.prf DESTINATION ${QMAKEMKSPECS}/mkspecs/features)
