@@ -4,9 +4,8 @@ project(libnotify-qt)
 
 set(PROJECT_VERSION 0.0.1)
 
-include(GenerateExportHeader)
 include(CheckCCompilerFlag)
-include(FindPkgConfig)
+include(GenerateExportHeader)
 
 find_package(Qt4)
 
