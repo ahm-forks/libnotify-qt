@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 2.8.11)
 
 project(libnotify-qt)
 
-set(PROJECT_VERSION 1.0.1)
+set(PROJECT_VERSION_MAJ 1)
+set(PROJECT_VERSION_MIN 2)
+set(PROJECT_VERSION_SOV 2)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -24,7 +26,9 @@ if(${BUILD_SHARED_LIBS})
 add_library(notify-qt SHARED ${LIB_SRCS})
 
 set_property(TARGET notify-qt PROPERTY POSITION_INDEPENDENT_CODE 1)
-set_target_properties(notify-qt PROPERTIES VERSION 1.0.1 SOVERSION 1.0.1)
+set_target_properties(notify-qt PROPERTIES VERSION
+					  "${PROJECT_VERSION_SOV}.${PROJECT_VERSION_MAJ}.${PROJECT_VERSION_MIN}"
+										SOVERSION ${PROJECT_VERSION_SOV})
 
 target_link_libraries(notify-qt Qt5::Core)
 target_link_libraries(notify-qt Qt5::DBus)
