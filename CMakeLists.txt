@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 2.8.7)
 
 project(libnotify-qt)
 
-set(PROJECT_VERSION 0.0.1)
+set(PROJECT_VERSION_MAJ 0)
+set(PROJECT_VERSION_MIN 2)
+set(PROJECT_VERSION_SOV 1)
 
 include(CheckCCompilerFlag)
 include(GenerateExportHeader)
@@ -44,7 +46,9 @@ endif(${BUILD_SHARED_LIBS})
 
 if(${BUILD_SHARED_LIBS})
 set_property(TARGET notify-qt PROPERTY POSITION_INDEPENDENT_CODE 1)
-set_target_properties(notify-qt PROPERTIES VERSION 0.0.1 SOVERSION 0.0.1)
+set_target_properties(notify-qt PROPERTIES VERSION
+					  "${PROJECT_VERSION_SOV}.${PROJECT_VERSION_MAJ}.${PROJECT_VERSION_MIN}"
+										SOVERSION ${PROJECT_VERSION_SOV})
 target_link_libraries(notify-qt ${QT_LIBRARIES})
 endif(${BUILD_SHARED_LIBS})
 
