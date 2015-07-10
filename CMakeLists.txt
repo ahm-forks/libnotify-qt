@@ -24,7 +24,8 @@ add_library(notify-qt_static STATIC ${LIB_SRCS})
 
 if(${BUILD_SHARED_LIBS})
 add_library(notify-qt SHARED ${LIB_SRCS})
-
+add_compiler_export_flags(EXPORT_FLAGS)
+set_property(TARGET notify-qt PROPERTY COMPILE_FLAGS ${EXPORT_FLAGS})
 set_property(TARGET notify-qt PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_target_properties(notify-qt PROPERTIES VERSION
 					  "${PROJECT_VERSION_SOV}.${PROJECT_VERSION_MAJ}.${PROJECT_VERSION_MIN}"
@@ -37,8 +38,11 @@ endif(${BUILD_SHARED_LIBS})
 target_link_libraries(notify-qt_static Qt5::Core)
 target_link_libraries(notify-qt_static Qt5::DBus)
 
+set_property(TARGET notify-qt_static PROPERTY COMPILE_DEFINITIONS QT_STATIC)
+
 configure_file(${CMAKE_SOURCE_DIR}/libnotify-qt.pc.in
 			   ${PROJECT_BINARY_DIR}/libnotify-qt.pc @ONLY)
+
 configure_file(${CMAKE_SOURCE_DIR}/libnotify-qt.prf.in
 			   ${PROJECT_BINARY_DIR}/libnotify-qt.prf @ONLY)
 
