@@ -36,6 +36,8 @@ if(${COMPILE_NOEXECSTACK})
 set_property(SOURCE ${LIB_SRCS} ${LIB_MOC_SRCS} APPEND PROPERTY COMPILE_FLAGS -Wa,--noexecstack)
 endif(${COMPILE_NOEXECSTACK})
 
+add_compiler_export_flags(EXPORT_FLAGS)
+
 qt4_wrap_cpp(LIB_MOC_SRCS ${LIB_MOC_HDRS})
 
 add_library(notify-qt_static STATIC ${LIB_MOC_SRCS} ${LIB_SRCS})
@@ -45,6 +47,7 @@ add_library(notify-qt SHARED ${LIB_MOC_SRCS} ${LIB_SRCS})
 endif(${BUILD_SHARED_LIBS})
 
 if(${BUILD_SHARED_LIBS})
+set_property(TARGET notify-qt PROPERTY COMPILE_FLAGS ${EXPORT_FLAGS})
 set_property(TARGET notify-qt PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_target_properties(notify-qt PROPERTIES VERSION
 					  "${PROJECT_VERSION_SOV}.${PROJECT_VERSION_MAJ}.${PROJECT_VERSION_MIN}"
@@ -52,8 +55,11 @@ set_target_properties(notify-qt PROPERTIES VERSION
 target_link_libraries(notify-qt ${QT_LIBRARIES})
 endif(${BUILD_SHARED_LIBS})
 
+set_property(TARGET notify-qt_static PROPERTY COMPILE_DEFINITIONS QT_STATIC)
+
 configure_file(${CMAKE_SOURCE_DIR}/libnotify-qt.pc.in
 			   ${PROJECT_BINARY_DIR}/libnotify-qt.pc @ONLY)
+
 configure_file(${CMAKE_SOURCE_DIR}/libnotify-qt.prf.in
 			   ${PROJECT_BINARY_DIR}/libnotify-qt.prf @ONLY)
 
