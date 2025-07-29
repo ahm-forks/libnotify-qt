@@ -19,65 +19,130 @@
 
 #include <QDBusConnection>
 #include <QDBusInterface>
-#include <QDebug>
+#include <QImage>
+#include <QPixmap>
+#include <QHash>
 
 #include "OrgFreedesktopNotificationsInterface.h"
 
-bool Notification::s_isInitted = false;
-QString Notification::s_appName;
-org::freedesktop::Notifications * Notification::s_notifications = 0;
+NotificationManager::NotificationManager(const QString & appName, QObject * parent) :
+	QObject(parent),
+	appName(appName),
+	ids()
+{
+	start();
+}
 
-bool Notification::init(const QString & appName)
+bool NotificationManager::start()
 {
 	if(!QDBusConnection::sessionBus().isConnected())
 		return false;
 
-	s_notifications = new org::freedesktop::Notifications("org.freedesktop.Notifications",
-														  "/org/freedesktop/Notifications",
-														  QDBusConnection::sessionBus());
+	INotifications = QSharedPointer<org::freedesktop::Notifications>(
+	                     new org::freedesktop::Notifications(
+	                         "org.freedesktop.Notifications",
+	                         "/org/freedesktop/Notifications",
+	                         QDBusConnection::sessionBus()
+	                     ));
+	if(INotifications->isValid()) {
+		connect(INotifications.get(), &org::freedesktop::Notifications::ActionInvoked,
+		        this, &NotificationManager::onActionInvoked);
 
-	s_appName = appName;
-	s_isInitted = s_notifications->isValid();
-	return s_isInitted;
+		connect(INotifications.get(), &org::freedesktop::Notifications::NotificationClosed,
+		        this, &NotificationManager::onNotificationClosed);
+		return true;
+	} else {
+		INotifications.clear();
+		return false;
+	}
 }
 
-void Notification::uninit()
-{
-	s_isInitted = false;
 
-	delete s_notifications;
+void NotificationManager::stop()
+{
+	if(INotifications.isNull()) return;
+
+	for(auto i = ids.begin(); i != ids.end(); ++i)
+		onNotificationClosed(i.key(), 0);
+
+	disconnect(INotifications.get());
+	INotifications.clear();
 }
 
-bool Notification::isInitted()
+
+NotificationManager::~NotificationManager()
 {
-	return s_isInitted;
+	stop();
 }
 
-const QString & Notification::getAppName()
+bool NotificationManager::ping()
 {
-	return s_appName;
+	if(INotifications.isNull()) return false;
+	return INotifications->connection().isConnected();
 }
 
-QStringList Notification::getServerCaps()
+const QString & NotificationManager::getAppName()
 {
-	QDBusPendingReply<QStringList> reply = s_notifications->getCapabilities();
+	return appName;
+}
+
+QSharedPointer<Notification> NotificationManager::createNotification(const QString & summary, const QString & body,
+        const QString & iconName)
+{
+	QSharedPointer<Notification> ntf = QSharedPointer<Notification>(
+	                                       new Notification(*this, summary, body, iconName));
+	return ntf;
+}
+
+void NotificationManager::addNotification(QSharedPointer<Notification> notif, quint32 id)
+{
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	if(ids.contains(id)) {
+		auto ntf = ids.take(id);
+		ntf->onNotificationClosed(0);
+	}
+	ids.insert(id, notif);
+#else
+	ids.insertOrAssign(id, notif);
+#endif
+}
+
+void NotificationManager::onActionInvoked(quint32 id, const QString & actionKey)
+{
+	if(! ids.contains(id) || ids.value(id).isNull()) return;
+	ids.value(id)->onActionInvoked(actionKey);
+}
+
+void NotificationManager::onNotificationClosed(quint32 id, quint32 reason)
+{
+	if(INotifications.isNull()) return;
+	if(! ids.contains(id) || ids.value(id).isNull()) return;
+	QSharedPointer<Notification> notif  = ids.take(id);
+	notif ->onNotificationClosed(reason);
+}
+
+QStringList NotificationManager::getServerCaps()
+{
+	if(INotifications.isNull()) return QStringList();
+
+	QDBusPendingReply<QStringList> reply = INotifications->getCapabilities();
 	reply.waitForFinished();
 
-	if(reply.isValid())
-	{
+	if(reply.isValid()) {
 		return reply.argumentAt(0).toStringList();
 	}
 
 	return QStringList();
 }
 
-bool Notification::getServerInfo(QString & name, QString & vendor, QString & version)
+bool NotificationManager::getServerInfo(QString & name, QString & vendor, QString & version)
 {
-	QDBusPendingReply<QString, QString, QString> reply = s_notifications->getServerInformation();
+	if(INotifications.isNull()) return false;
+
+	QDBusPendingReply<QString, QString, QString> reply = INotifications->getServerInformation();
 	reply.waitForFinished();
 
-	if(reply.isValid())
-	{
+	if(reply.isValid()) {
 		name = reply.argumentAt(SERVER_INFO_NAME).toString();
 		vendor = reply.argumentAt(SERVER_INFO_VENDOR).toString();
 		version = reply.argumentAt(SERVER_INFO_VERSION).toString();
@@ -87,8 +152,13 @@ bool Notification::getServerInfo(QString & name, QString & vendor, QString & ver
 	return false;
 }
 
-Notification::Notification(const QString & summary, const QString & body, const QString & iconName, QObject * parent) :
-	QObject(parent),
+Notification::Notification(
+    NotificationManager& parent,
+    const QString & summary,
+    const QString & body,
+    const QString & iconName) :
+	QObject(&parent),
+	mgr(parent),
 	m_id(0),
 	m_summary(summary),
 	m_body(body),
@@ -97,30 +167,21 @@ Notification::Notification(const QString & summary, const QString & body, const 
 	m_autoDelete(true)
 {
 	setUrgency(NOTIFICATION_URGENCY_NORMAL);
-
-	// TODO: i should do this somehow in org::freedesktop::Notifications imho
-	QDBusConnection::sessionBus().connect(QString(), QString(), org::freedesktop::Notifications::staticInterfaceName(),
-										  "NotificationClosed", this, SLOT(onNotificationClosed(quint32, quint32)));
-	QDBusConnection::sessionBus().connect(QString(), QString(), org::freedesktop::Notifications::staticInterfaceName(),
-										  "ActionInvoked", this, SLOT(onActionInvoked(quint32,QString)));
-}
-
-Notification::~Notification()
-{
-	disconnect(s_notifications);
 }
 
 bool Notification::show()
 {
-	QDBusPendingReply<quint32> reply = s_notifications->notify(getAppName(), m_id, m_iconName, m_summary, m_body,
-															   m_actions, m_hints, m_timeout);
-	if(m_id == 0)
-	{
+	if(mgr.INotifications.isNull()) return false;
+
+	QDBusPendingReply<quint32> reply = mgr.INotifications->notify(mgr.getAppName(), m_id, m_iconName, m_summary, m_body,
+	                                   m_actions, m_hints, m_timeout);
+	if(m_id == 0) {
 		reply.waitForFinished();
 		if(!reply.isValid())
 			return false;
 
 		m_id = reply.argumentAt(0).toInt();
+		mgr.addNotification(this->sharedFromThis(), m_id);
 	}
 
 	return true;
@@ -156,10 +217,25 @@ void Notification::setCategory(const QString & category)
 	setHintString("category", category);
 }
 
-/*void Notification::setIconFromPixmap(const QPixmap & pixmap)
+void Notification::setIconFromPixmap(const QPixmap & pixmap)
 {
-	setHintByteArray("image_data",pixmap.t);
-}*/
+	setIconFromImage(pixmap.toImage());
+}
+
+void Notification::setIconFromImage(const QImage & img)
+{
+	QDBusArgument icon;
+	icon.beginStructure();
+	icon << img.width()
+	     << img.height()
+	     << (qint32) img.bytesPerLine() // rowstride
+	     << img.hasAlphaChannel()
+	     << 8 // bits_per_sample, always 8
+	     << (img.hasAlphaChannel()?4:3)
+	     << QByteArray::fromRawData((const char*) img.constBits(), img.sizeInBytes());
+	icon.endStructure();
+	setHint("image-data", QVariant::fromValue(icon));
+}
 
 void Notification::setLocation(qint32 x, qint32 y)
 {
@@ -189,7 +265,7 @@ void Notification::setHintString(const QString & key, const QString & value)
 
 void Notification::setHintByte(const QString & key, char value)
 {
-    setHintByteArray(key, QByteArray(1, value));
+	setHintByteArray(key, QByteArray(1, value));
 }
 
 void Notification::setHintByteArray(const QString & key, const QByteArray & value)
@@ -214,7 +290,7 @@ void Notification::clearActions()
 
 bool Notification::close()
 {
-	QDBusPendingReply<> reply = s_notifications->closeNotification(m_id);
+	QDBusPendingReply<> reply = ((NotificationManager *) parent())->INotifications->closeNotification(m_id);
 	reply.waitForFinished();
 	return reply.isValid();
 }
@@ -229,21 +305,14 @@ void Notification::setAutoDelete(bool autoDelete)
 	m_autoDelete = autoDelete;
 }
 
-void Notification::onNotificationClosed(quint32 id, quint32 reason)
+void Notification::onNotificationClosed(quint32 reason)
 {
-	if(m_id == id)
-	{
-		emit closed(reason);
-
-		if(m_autoDelete)
-			deleteLater();
-	}
+	emit closed(reason);
+	if(m_autoDelete)
+		deleteLater();
 }
 
-void Notification::onActionInvoked(quint32 id, const QString & actionKey)
+void Notification::onActionInvoked(const QString & actionKey)
 {
-	if(m_id == id)
-	{
-		emit actionInvoked(actionKey);
-	}
+	emit actionInvoked(actionKey);
 }

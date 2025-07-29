@@ -22,6 +22,7 @@
 #include <QObject>
 #include <QStringList>
 #include <QVariantMap>
+#include <QSharedPointer>
 
 enum ServerInfo
 {
@@ -48,24 +49,47 @@ namespace org
 	}
 }
 
-class Q_DECL_EXPORT Notification : public QObject
+class Q_DECL_EXPORT Notification;
+
+class Q_DECL_EXPORT NotificationManager: public QObject {
+    Q_OBJECT
+
+friend class Notification;
+
+public:
+    const QString appName;
+    QSharedPointer<org::freedesktop::Notifications> INotifications = nullptr;
+
+    NotificationManager(const QString & appName, QObject * parent = 0);
+    ~NotificationManager();
+
+    bool start();
+    void stop();
+    bool ping();
+    const QString & getAppName();
+    QStringList getServerCaps();
+    bool getServerInfo(QString & name, QString & vendor, QString & version);
+    QSharedPointer<Notification> createNotification(const QString & summary, const QString & body = QString(),
+                                                    const QString & iconName = QString());
+private:
+    QHash<quint32, QSharedPointer<Notification>> ids;
+    void addNotification(QSharedPointer<Notification> notif, quint32 id);
+
+private slots:
+    void onNotificationClosed(quint32 id, quint32 reason);
+    void onActionInvoked(quint32 id, const QString & actionKey);
+};
+
+class Q_DECL_EXPORT Notification : public QObject, public QEnableSharedFromThis<Notification>
 {
-	Q_OBJECT
+    Q_OBJECT
 
-	typedef QList<Notification *> NotificationList;
-
+    friend class NotificationManager;
 	public:
-		static bool init(const QString & appName);
-		static void uninit();
-		static bool isInitted();
-
-		static const QString & getAppName();
-		static QStringList getServerCaps();
-		static bool getServerInfo(QString & name, QString & vendor, QString & version);
-
-		Notification(const QString & summary, const QString & body = QString(),
-					 const QString & iconName = QString(), QObject * parent = 0);
-		~Notification();
+        Notification(NotificationManager& parent,
+                     const QString & summary,
+                     const QString & body = QString(),
+                     const QString & iconName = QString());
 
 		bool show();
 
@@ -76,7 +100,8 @@ class Q_DECL_EXPORT Notification : public QObject
 
 		void setUrgency(NotificationUrgency urgency);
 		void setCategory(const QString & category);
-		//void setIconFromPixmap(const QPixmap & pixmap);
+        void setIconFromPixmap(const QPixmap & img);
+        void setIconFromImage(const QImage & img);
 		void setLocation(qint32 x, qint32 y);
 
 		void setHint(const QString & key, const QVariant & value);
@@ -96,25 +121,18 @@ class Q_DECL_EXPORT Notification : public QObject
 		void setAutoDelete(bool autoDelete);
 
 	private slots:
-		void onNotificationClosed(quint32 id, quint32 reason);
-		void onActionInvoked(quint32 id, const QString & actionKey);
+        void onNotificationClosed(quint32 reason);
+        void onActionInvoked(const QString & actionKey);
 
 	private:
-		static void addNotification(Notification * n);
-		static void removeNotification(Notification * n);
-
-	private:
-		static bool s_isInitted;
-		static QString s_appName;
-		static org::freedesktop::Notifications * s_notifications;
-
+        NotificationManager& mgr;
 		quint32 m_id;
 		QString m_summary;
 		QString m_body;
 		QString m_iconName;
 		qint32 m_timeout;
 		QStringList m_actions;
-		QVariantMap m_hints;
+        QVariantMap m_hints;
 
 		bool m_autoDelete;
 

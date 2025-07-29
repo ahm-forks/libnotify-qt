@@ -44,16 +44,16 @@ class OrgFreedesktopNotificationsInterface : public QDBusAbstractInterface
 		QDBusPendingReply<> closeNotification(quint32 id);
 		QDBusPendingReply<QString, QString, QString> getServerInformation();
 
-	/*signals:
-		void notificationClosed(quint32 id, quint32 reason);
-		void actionInvoked(quint32 id, const QString & actionKey);*/
+	signals:
+		void ActionInvoked(quint32 id, const QString &action_key);
+	    void NotificationClosed(quint32 id, quint32 reason);
 };
 
 namespace org
 {
 	namespace freedesktop
 	{
-		typedef OrgFreedesktopNotificationsInterface Notifications;
+        typedef OrgFreedesktopNotificationsInterface Notifications;
 	}
 }
 

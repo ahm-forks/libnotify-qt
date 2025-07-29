@@ -9,7 +9,7 @@ set(PROJECT_VERSION_SOV 1)
 include(CheckCCompilerFlag)
 include(GenerateExportHeader)
 
-find_package(Qt4)
+find_package(Qt5)
 
 set(QT_USE_QTDBUS TRUE)
 set(QT_USE_QTCORE TRUE)
