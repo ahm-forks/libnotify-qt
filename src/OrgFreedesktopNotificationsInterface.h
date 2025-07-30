@@ -21,14 +21,20 @@
 #include <QDBusAbstractInterface>
 #include <QDBusPendingReply>
 
-class OrgFreedesktopNotificationsInterface : public QDBusAbstractInterface
+namespace org {
+    namespace freedesktop {
+        class Notifications;
+    }
+}
+
+class org::freedesktop::Notifications : public QDBusAbstractInterface
 {
 	Q_OBJECT
 
 	public:
-		OrgFreedesktopNotificationsInterface(const QString & service, const QString & path,
+        Notifications(const QString & service, const QString & path,
 											 const QDBusConnection & connection, QObject * parent = 0);
-		~OrgFreedesktopNotificationsInterface();
+        ~Notifications();
 
 		static inline const char * staticInterfaceName()
 		{
@@ -48,13 +54,5 @@ class OrgFreedesktopNotificationsInterface : public QDBusAbstractInterface
 		void ActionInvoked(quint32 id, const QString &action_key);
 	    void NotificationClosed(quint32 id, quint32 reason);
 };
-
-namespace org
-{
-	namespace freedesktop
-	{
-        typedef OrgFreedesktopNotificationsInterface Notifications;
-	}
-}
 
 #endif // ORGFREEDESKTOPNOTIFICATIONSINTERFACE_H

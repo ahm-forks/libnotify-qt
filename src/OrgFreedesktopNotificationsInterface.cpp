@@ -17,7 +17,7 @@
 
 #include "OrgFreedesktopNotificationsInterface.h"
 
-OrgFreedesktopNotificationsInterface::OrgFreedesktopNotificationsInterface(const QString & service,
+org::freedesktop::Notifications::Notifications(const QString & service,
         const QString & path,
         const QDBusConnection & connection,
         QObject * parent) :
@@ -25,16 +25,16 @@ OrgFreedesktopNotificationsInterface::OrgFreedesktopNotificationsInterface(const
 {
 }
 
-OrgFreedesktopNotificationsInterface::~OrgFreedesktopNotificationsInterface()
+org::freedesktop::Notifications::~Notifications()
 {
 }
 
-QDBusPendingReply<QStringList> OrgFreedesktopNotificationsInterface::getCapabilities()
+QDBusPendingReply<QStringList> org::freedesktop::Notifications::getCapabilities()
 {
 	return asyncCall("GetCapabilities");
 }
 
-QDBusPendingReply<quint32> OrgFreedesktopNotificationsInterface::notify(const QString & appName, quint32 replacesId,
+QDBusPendingReply<quint32> org::freedesktop::Notifications::notify(const QString & appName, quint32 replacesId,
         const QString & appIcon,
         const QString & summary, const QString & body,
         const QStringList & actions,
@@ -44,12 +44,12 @@ QDBusPendingReply<quint32> OrgFreedesktopNotificationsInterface::notify(const QS
 	return asyncCall("Notify", appName, replacesId, appIcon, summary, body, actions, hints, timeout);
 }
 
-QDBusPendingReply<> OrgFreedesktopNotificationsInterface::closeNotification(quint32 id)
+QDBusPendingReply<> org::freedesktop::Notifications::closeNotification(quint32 id)
 {
 	return asyncCall("CloseNotification", id);
 }
 
-QDBusPendingReply<QString, QString, QString> OrgFreedesktopNotificationsInterface::getServerInformation()
+QDBusPendingReply<QString, QString, QString> org::freedesktop::Notifications::getServerInformation()
 {
 	return asyncCall("GetServerInformation");
 }

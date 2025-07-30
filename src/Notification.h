@@ -38,14 +38,11 @@ enum NotificationUrgency
 	NOTIFICATION_URGENCY_CRITICAL
 };
 
-class QDBusInterface;
-class OrgFreedesktopNotificationsInterface;
-
 namespace org
 {
 	namespace freedesktop
 	{
-		typedef OrgFreedesktopNotificationsInterface Notifications;
+        class Notifications;
 	}
 }
 
