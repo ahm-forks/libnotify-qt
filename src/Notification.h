@@ -18,8 +18,8 @@
 #ifndef NOTIFICATION_H
 #define NOTIFICATION_H
 
-#include <QList>
 #include <QObject>
+#include <QHash>
 #include <QStringList>
 #include <QVariantMap>
 #include <QSharedPointer>
@@ -55,8 +55,10 @@ class Q_DECL_EXPORT NotificationManager: public QObject {
     Q_OBJECT
 
 public:
+    static QVariant serializeImage(const QImage & img);
+
+public:
     const QString appName;
-    QSharedPointer<org::freedesktop::Notifications> INotifications = nullptr;
 
     NotificationManager(const QString & appName, QObject * parent = 0);
     ~NotificationManager();
@@ -69,16 +71,12 @@ public:
     bool getServerInfo(QString & name, QString & vendor, QString & version);
     QSharedPointer<Notification> createNotification(const QString & summary, const QString & body = QString(),
                                                     const QString & iconName = QString());
-    bool show(
-            const QSharedPointer<Notification> & notif,
-            quint32 & id, const QString & appIcon,
-            const QString & summary, const QString & body,
-            const QStringList & actions, const QVariantMap & hints,
-            qint32 timeout);
+    bool show(const QSharedPointer<Notification> & notif, quint32 & id);
     bool close(quint32 & id);
 
 
 private:
+    QSharedPointer<org::freedesktop::Notifications> INotifications = nullptr;
     QHash<quint32, QSharedPointer<Notification>> ids;
     void addNotification(QSharedPointer<Notification> notif, quint32 id);
 
@@ -91,8 +89,7 @@ class Q_DECL_EXPORT Notification : public QObject, public QEnableSharedFromThis<
 {
     Q_OBJECT
 
-    friend class NotificationManager;
-	public:
+public:
         Notification(NotificationManager& parent,
                      const QString & summary,
                      const QString & body = QString(),
@@ -123,12 +120,17 @@ class Q_DECL_EXPORT Notification : public QObject, public QEnableSharedFromThis<
 
 		Notification* addAction(const QString & actionKey, const QString & label);
 		Notification* clearActions();
+        void emitClosed(quint32 reason);
+        void emitAction(const QString & actionKey);
 
-	private slots:
-        void onNotificationClosed(quint32 reason);
-        void onActionInvoked(const QString & actionKey);
-
-	private:
+    public:
+        quint32   timeout();
+        const QString & summery();
+        const QString & body();
+        const QString & iconName();
+        const QStringList & actions();
+        const QVariantMap & hints();
+    private:
         NotificationManager& mgr;
 		quint32 m_id;
 		QString m_summary;

@@ -17,174 +17,9 @@
 
 #include "Notification.h"
 
-#include <QDBusConnection>
-#include <QDBusInterface>
 #include <QImage>
 #include <QPixmap>
 #include <QHash>
-
-#include "OrgFreedesktopNotificationsInterface.h"
-
-NotificationManager::NotificationManager(const QString & appName, QObject * parent) :
-	QObject(parent),
-	appName(appName),
-	ids()
-{
-	start();
-}
-
-bool NotificationManager::start()
-{
-	if(!QDBusConnection::sessionBus().isConnected())
-		return false;
-
-	INotifications = QSharedPointer<org::freedesktop::Notifications>(
-	                     new org::freedesktop::Notifications(
-	                         "org.freedesktop.Notifications",
-	                         "/org/freedesktop/Notifications",
-	                         QDBusConnection::sessionBus()
-	                     ));
-	if(INotifications->isValid()) {
-		connect(INotifications.get(), &org::freedesktop::Notifications::ActionInvoked,
-		        this, &NotificationManager::onActionInvoked);
-
-		connect(INotifications.get(), &org::freedesktop::Notifications::NotificationClosed,
-		        this, &NotificationManager::onNotificationClosed);
-		return true;
-	} else {
-		INotifications.clear();
-		return false;
-	}
-}
-
-
-void NotificationManager::stop()
-{
-	if(INotifications.isNull()) return;
-
-	for(auto i = ids.begin(); i != ids.end(); ++i)
-		onNotificationClosed(i.key(), 0);
-
-	disconnect(INotifications.get());
-	INotifications.clear();
-}
-
-
-NotificationManager::~NotificationManager()
-{
-	stop();
-}
-
-bool NotificationManager::ping()
-{
-	if(INotifications.isNull()) return false;
-	return INotifications->connection().isConnected();
-}
-
-const QString & NotificationManager::getAppName()
-{
-	return appName;
-}
-
-QSharedPointer<Notification> NotificationManager::createNotification(const QString & summary, const QString & body,
-        const QString & iconName)
-{
-	QSharedPointer<Notification> ntf = QSharedPointer<Notification>(
-	                                       new Notification(*this, summary, body, iconName));
-	return ntf;
-}
-
-void NotificationManager::addNotification(QSharedPointer<Notification> notif, quint32 id)
-{
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	if(ids.contains(id)) {
-		auto ntf = ids.take(id);
-		ntf->onNotificationClosed(0);
-	}
-	ids.insert(id, notif);
-#else
-	ids.insertOrAssign(id, notif);
-#endif
-}
-
-void NotificationManager::onActionInvoked(quint32 id, const QString & actionKey)
-{
-	if(! ids.contains(id) || ids.value(id).isNull()) return;
-	ids.value(id)->onActionInvoked(actionKey);
-}
-
-void NotificationManager::onNotificationClosed(quint32 id, quint32 reason)
-{
-	if(INotifications.isNull()) return;
-	if(! ids.contains(id) || ids.value(id).isNull()) return;
-	QSharedPointer<Notification> notif  = ids.take(id);
-	notif->onNotificationClosed(reason);
-}
-
-QStringList NotificationManager::getServerCaps()
-{
-	if(INotifications.isNull()) return QStringList();
-
-	QDBusPendingReply<QStringList> reply = INotifications->getCapabilities();
-	reply.waitForFinished();
-
-	if(reply.isValid()) {
-		return reply.argumentAt(0).toStringList();
-	}
-
-	return QStringList();
-}
-
-bool NotificationManager::getServerInfo(QString & name, QString & vendor, QString & version)
-{
-	if(INotifications.isNull()) return false;
-
-	QDBusPendingReply<QString, QString, QString> reply = INotifications->getServerInformation();
-	reply.waitForFinished();
-
-	if(reply.isValid()) {
-		name = reply.argumentAt(SERVER_INFO_NAME).toString();
-		vendor = reply.argumentAt(SERVER_INFO_VENDOR).toString();
-		version = reply.argumentAt(SERVER_INFO_VERSION).toString();
-		return true;
-	}
-
-	return false;
-}
-
-bool NotificationManager::show(
-    const QSharedPointer<Notification>& notif,
-    quint32 & id, const QString & appIcon,
-    const QString & summary, const QString & body,
-    const QStringList & actions, const QVariantMap & hints,
-    qint32 timeout)
-{
-	if(INotifications.isNull()) return false;
-
-	QDBusPendingReply<quint32> reply = INotifications->notify(appName, id, appIcon, summary, body,
-	                                   actions, hints, timeout);
-	if(id == 0) {
-		reply.waitForFinished();
-		if(!reply.isValid())
-			return false;
-
-		id = reply.argumentAt(0).toInt();
-		addNotification(notif, id);
-	}
-
-	return true;
-}
-
-bool NotificationManager::close(quint32 & id)
-{
-	if(id == 0) return true;
-	if(INotifications.isNull()) return false;
-	if(! ids.contains(id) || ids.value(id).isNull()) return false;
-
-	QDBusPendingReply<> reply = INotifications->closeNotification(id);
-	reply.waitForFinished();
-	return reply.isValid();
-}
 
 Notification::Notification(
     NotificationManager& parent,
@@ -205,7 +40,7 @@ Notification::Notification(
 
 bool Notification::show()
 {
-	return mgr.show(this->sharedFromThis(), m_id, m_iconName, m_summary, m_body, m_actions, m_hints, m_timeout);
+	return mgr.show(this->sharedFromThis(), m_id);
 }
 
 Notification* Notification::setSummary(const QString & summary)
@@ -249,17 +84,7 @@ Notification* Notification::setIconFromPixmap(const QPixmap & pixmap)
 
 Notification* Notification::setIconFromImage(const QImage & img)
 {
-	QDBusArgument icon;
-	icon.beginStructure();
-	icon << img.width()
-	     << img.height()
-	     << (qint32) img.bytesPerLine() // rowstride
-	     << img.hasAlphaChannel()
-	     << 8 // bits_per_sample, always 8
-	     << (img.hasAlphaChannel()?4:3)
-	     << QByteArray::fromRawData((const char*) img.constBits(), img.sizeInBytes());
-	icon.endStructure();
-	return setHint("image-data", QVariant::fromValue(icon));
+	return setHint("image-data", NotificationManager::serializeImage(img));
 }
 
 Notification* Notification::setLocation(qint32 x, qint32 y)
@@ -320,6 +145,36 @@ Notification* Notification::clearActions()
 	return this;
 }
 
+quint32 Notification::timeout()
+{
+	return m_timeout;
+}
+
+const QString & Notification::summery()
+{
+	return m_summary;
+}
+
+const QString & Notification::body()
+{
+	return m_body;
+}
+const QString & Notification::iconName()
+{
+	return m_iconName;
+}
+
+const QStringList & Notification::actions()
+{
+	return m_actions;
+}
+
+const QVariantMap & Notification::hints()
+{
+	return m_hints;
+}
+
+
 bool Notification::close()
 {
 	return mgr.close(m_id);
@@ -336,14 +191,14 @@ Notification* Notification::setAutoDelete(bool autoDelete)
 	return this;
 }
 
-void Notification::onNotificationClosed(quint32 reason)
+void Notification::emitClosed(quint32 reason)
 {
 	emit closed(reason);
 	if(m_autoDelete)
 		deleteLater();
 }
 
-void Notification::onActionInvoked(const QString & actionKey)
+void Notification::emitAction(const QString & actionKey)
 {
 	emit actionInvoked(actionKey);
 }
