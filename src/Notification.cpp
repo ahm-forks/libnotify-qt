@@ -152,6 +152,40 @@ bool NotificationManager::getServerInfo(QString & name, QString & vendor, QStrin
 	return false;
 }
 
+bool NotificationManager::show(
+    const QSharedPointer<Notification>& notif,
+    quint32 & id, const QString & appIcon,
+    const QString & summary, const QString & body,
+    const QStringList & actions, const QVariantMap & hints,
+    qint32 timeout)
+{
+	if(INotifications.isNull()) return false;
+
+	QDBusPendingReply<quint32> reply = INotifications->notify(appName, id, appIcon, summary, body,
+	                                   actions, hints, timeout);
+	if(id == 0) {
+		reply.waitForFinished();
+		if(!reply.isValid())
+			return false;
+
+		id = reply.argumentAt(0).toInt();
+		addNotification(notif, id);
+	}
+
+	return true;
+}
+
+bool NotificationManager::close(quint32 & id)
+{
+	if(id == 0) return true;
+	if(INotifications.isNull()) return false;
+	if(! ids.contains(id) || ids.value(id).isNull()) return false;
+
+	QDBusPendingReply<> reply = INotifications->closeNotification(id);
+	reply.waitForFinished();
+	return reply.isValid();
+}
+
 Notification::Notification(
     NotificationManager& parent,
     const QString & summary,
@@ -171,20 +205,7 @@ Notification::Notification(
 
 bool Notification::show()
 {
-	if(mgr.INotifications.isNull()) return false;
-
-	QDBusPendingReply<quint32> reply = mgr.INotifications->notify(mgr.getAppName(), m_id, m_iconName, m_summary, m_body,
-	                                   m_actions, m_hints, m_timeout);
-	if(m_id == 0) {
-		reply.waitForFinished();
-		if(!reply.isValid())
-			return false;
-
-		m_id = reply.argumentAt(0).toInt();
-		mgr.addNotification(this->sharedFromThis(), m_id);
-	}
-
-	return true;
+	return mgr.show(this->sharedFromThis(), m_id, m_iconName, m_summary, m_body, m_actions, m_hints, m_timeout);
 }
 
 Notification* Notification::setSummary(const QString & summary)
@@ -301,9 +322,7 @@ Notification* Notification::clearActions()
 
 bool Notification::close()
 {
-	QDBusPendingReply<> reply = ((NotificationManager *) parent())->INotifications->closeNotification(m_id);
-	reply.waitForFinished();
-	return reply.isValid();
+	return mgr.close(m_id);
 }
 
 bool Notification::autoDelete() const

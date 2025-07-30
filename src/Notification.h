@@ -54,8 +54,6 @@ class Q_DECL_EXPORT Notification;
 class Q_DECL_EXPORT NotificationManager: public QObject {
     Q_OBJECT
 
-friend class Notification;
-
 public:
     const QString appName;
     QSharedPointer<org::freedesktop::Notifications> INotifications = nullptr;
@@ -71,6 +69,15 @@ public:
     bool getServerInfo(QString & name, QString & vendor, QString & version);
     QSharedPointer<Notification> createNotification(const QString & summary, const QString & body = QString(),
                                                     const QString & iconName = QString());
+    bool show(
+            const QSharedPointer<Notification> & notif,
+            quint32 & id, const QString & appIcon,
+            const QString & summary, const QString & body,
+            const QStringList & actions, const QVariantMap & hints,
+            qint32 timeout);
+    bool close(quint32 & id);
+
+
 private:
     QHash<quint32, QSharedPointer<Notification>> ids;
     void addNotification(QSharedPointer<Notification> notif, quint32 id);
