@@ -118,7 +118,7 @@ void NotificationManager::onNotificationClosed(quint32 id, quint32 reason)
 	if(INotifications.isNull()) return;
 	if(! ids.contains(id) || ids.value(id).isNull()) return;
 	QSharedPointer<Notification> notif  = ids.take(id);
-	notif ->onNotificationClosed(reason);
+	notif->onNotificationClosed(reason);
 }
 
 QStringList NotificationManager::getServerCaps()
@@ -187,42 +187,46 @@ bool Notification::show()
 	return true;
 }
 
-void Notification::setSummary(const QString & summary)
+Notification* Notification::setSummary(const QString & summary)
 {
 	m_summary = summary;
+	return this;
 }
 
-void Notification::setBody(const QString & body)
+Notification* Notification::setBody(const QString & body)
 {
 	m_body = body;
+	return this;
 }
 
-void Notification::setIconName(const QString & iconName)
+Notification* Notification::setIconName(const QString & iconName)
 {
 	m_iconName = iconName;
+	return this;
 }
 
-void Notification::setTimeout(qint32 timeout)
+Notification* Notification::setTimeout(qint32 timeout)
 {
 	m_timeout = timeout;
+	return this;
 }
 
-void Notification::setUrgency(NotificationUrgency urgency)
+Notification* Notification::setUrgency(NotificationUrgency urgency)
 {
-	setHintByte("urgency", urgency);
+	return setHintByte("urgency", urgency);
 }
 
-void Notification::setCategory(const QString & category)
+Notification* Notification::setCategory(const QString & category)
 {
-	setHintString("category", category);
+	return setHintString("category", category);
 }
 
-void Notification::setIconFromPixmap(const QPixmap & pixmap)
+Notification* Notification::setIconFromPixmap(const QPixmap & pixmap)
 {
-	setIconFromImage(pixmap.toImage());
+	return setIconFromImage(pixmap.toImage());
 }
 
-void Notification::setIconFromImage(const QImage & img)
+Notification* Notification::setIconFromImage(const QImage & img)
 {
 	QDBusArgument icon;
 	icon.beginStructure();
@@ -234,58 +238,65 @@ void Notification::setIconFromImage(const QImage & img)
 	     << (img.hasAlphaChannel()?4:3)
 	     << QByteArray::fromRawData((const char*) img.constBits(), img.sizeInBytes());
 	icon.endStructure();
-	setHint("image-data", QVariant::fromValue(icon));
+	return setHint("image-data", QVariant::fromValue(icon));
 }
 
-void Notification::setLocation(qint32 x, qint32 y)
+Notification* Notification::setLocation(qint32 x, qint32 y)
 {
-	setHintInt32("x", x);
-	setHintInt32("y", y);
+	return (setHintInt32("x", x)->setHintInt32("y", y));
 }
 
-void Notification::setHint(const QString & key, const QVariant & value)
-{
-	m_hints.insert(key, value);
-}
-
-void Notification::setHintInt32(const QString & key, qint32 value)
+Notification* Notification::setHint(const QString & key, const QVariant & value)
 {
 	m_hints.insert(key, value);
+	return this;
 }
 
-void Notification::setHintDouble(const QString & key, double value)
+Notification* Notification::setHintInt32(const QString & key, qint32 value)
 {
 	m_hints.insert(key, value);
+	return this;
 }
 
-void Notification::setHintString(const QString & key, const QString & value)
+Notification* Notification::setHintDouble(const QString & key, double value)
 {
 	m_hints.insert(key, value);
+	return this;
 }
 
-void Notification::setHintByte(const QString & key, char value)
-{
-	setHintByteArray(key, QByteArray(1, value));
-}
-
-void Notification::setHintByteArray(const QString & key, const QByteArray & value)
+Notification* Notification::setHintString(const QString & key, const QString & value)
 {
 	m_hints.insert(key, value);
+	return this;
 }
 
-void Notification::clearHints()
+Notification* Notification::setHintByte(const QString & key, char value)
+{
+	return setHintByteArray(key, QByteArray(1, value));
+}
+
+Notification* Notification::setHintByteArray(const QString & key, const QByteArray & value)
+{
+	m_hints.insert(key, value);
+	return this;
+}
+
+Notification* Notification::clearHints()
 {
 	m_hints.clear();
+	return this;
 }
 
-void Notification::addAction(const QString & actionKey, const QString & label)
+Notification* Notification::addAction(const QString & actionKey, const QString & label)
 {
 	m_actions << actionKey << label;
+	return this;
 }
 
-void Notification::clearActions()
+Notification* Notification::clearActions()
 {
 	m_actions.clear();
+	return this;
 }
 
 bool Notification::close()
@@ -300,9 +311,10 @@ bool Notification::autoDelete() const
 	return m_autoDelete;
 }
 
-void Notification::setAutoDelete(bool autoDelete)
+Notification* Notification::setAutoDelete(bool autoDelete)
 {
 	m_autoDelete = autoDelete;
+	return this;
 }
 
 void Notification::onNotificationClosed(quint32 reason)

@@ -92,33 +92,30 @@ class Q_DECL_EXPORT Notification : public QObject, public QEnableSharedFromThis<
                      const QString & iconName = QString());
 
 		bool show();
-
-		void setSummary(const QString & summary);
-		void setBody(const QString & body);
-		void setIconName(const QString & iconName);
-		void setTimeout(qint32 timeout);
-
-		void setUrgency(NotificationUrgency urgency);
-		void setCategory(const QString & category);
-        void setIconFromPixmap(const QPixmap & img);
-        void setIconFromImage(const QImage & img);
-		void setLocation(qint32 x, qint32 y);
-
-		void setHint(const QString & key, const QVariant & value);
-		void setHintInt32(const QString & key, qint32 value);
-		void setHintDouble(const QString & key, double value);
-		void setHintString(const QString & key, const QString & value);
-		void setHintByte(const QString & key, char value);
-		void setHintByteArray(const QString & key, const QByteArray & value);
-		void clearHints();
-
-		void addAction(const QString & actionKey, const QString & label);
-		void clearActions();
-
 		bool close();
-
 		bool autoDelete() const;
-		void setAutoDelete(bool autoDelete);
+
+		Notification* setAutoDelete(bool autoDelete);
+		Notification* setSummary(const QString & summary);
+		Notification* setBody(const QString & body);
+		Notification* setIconName(const QString & iconName);
+		Notification* setTimeout(qint32 timeout);
+		Notification* setUrgency(NotificationUrgency urgency);
+		Notification* setCategory(const QString & category);
+        Notification* setIconFromPixmap(const QPixmap & img);
+        Notification* setIconFromImage(const QImage & img);
+		Notification* setLocation(qint32 x, qint32 y);
+
+		Notification* setHint(const QString & key, const QVariant & value);
+		Notification* setHintInt32(const QString & key, qint32 value);
+		Notification* setHintDouble(const QString & key, double value);
+		Notification* setHintString(const QString & key, const QString & value);
+		Notification* setHintByte(const QString & key, char value);
+		Notification* setHintByteArray(const QString & key, const QByteArray & value);
+		Notification* clearHints();
+
+		Notification* addAction(const QString & actionKey, const QString & label);
+		Notification* clearActions();
 
 	private slots:
         void onNotificationClosed(quint32 reason);
