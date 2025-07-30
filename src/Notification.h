@@ -24,18 +24,11 @@
 #include <QVariantMap>
 #include <QSharedPointer>
 
-enum ServerInfo
+enum class NotificationUrgency: quint8
 {
-	SERVER_INFO_NAME = 0,
-	SERVER_INFO_VENDOR,
-	SERVER_INFO_VERSION
-};
-
-enum NotificationUrgency
-{
-	NOTIFICATION_URGENCY_LOW,
-	NOTIFICATION_URGENCY_NORMAL,
-	NOTIFICATION_URGENCY_CRITICAL
+    LOW,
+    NORMAL,
+    CRITICAL
 };
 
 namespace org

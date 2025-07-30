@@ -35,7 +35,7 @@ Notification::Notification(
 	m_timeout(5000),
 	m_autoDelete(true)
 {
-	setUrgency(NOTIFICATION_URGENCY_NORMAL);
+	setUrgency(NotificationUrgency::NORMAL);
 }
 
 bool Notification::show()
@@ -69,7 +69,7 @@ Notification* Notification::setTimeout(qint32 timeout)
 
 Notification* Notification::setUrgency(NotificationUrgency urgency)
 {
-	return setHintByte("urgency", urgency);
+	return setHintByte("urgency", (quint8) urgency);
 }
 
 Notification* Notification::setCategory(const QString & category)

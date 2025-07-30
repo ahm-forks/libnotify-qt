@@ -6,6 +6,11 @@
 
 #include "OrgFreedesktopNotificationsInterface.h"
 
+enum class ServerInfo: int {
+	NAME = 0,
+	VENDOR,
+	VERSION
+};
 
 NotificationManager::NotificationManager(const QString & appName, QObject * parent) :
 	QObject(parent),
@@ -125,9 +130,9 @@ bool NotificationManager::getServerInfo(QString & name, QString & vendor, QStrin
 	reply.waitForFinished();
 
 	if(reply.isValid()) {
-		name = reply.argumentAt(SERVER_INFO_NAME).toString();
-		vendor = reply.argumentAt(SERVER_INFO_VENDOR).toString();
-		version = reply.argumentAt(SERVER_INFO_VERSION).toString();
+		name = reply.argumentAt((int)ServerInfo::NAME).toString();
+		vendor = reply.argumentAt((int)ServerInfo::VENDOR).toString();
+		version = reply.argumentAt((int)ServerInfo::VENDOR).toString();
 		return true;
 	}
 
