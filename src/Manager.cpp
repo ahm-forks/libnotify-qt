@@ -1,10 +1,10 @@
-#include "Notification.h"
+#include "libnotify-qt.h"
 
 #include <QImage>
 #include <QDBusInterface>
 #include <QDBusConnection>
 
-#include "OrgFreedesktopNotificationsInterface.h"
+#include "Interface.h"
 
 enum class ServerInfo: int {
 	NAME = 0,
@@ -12,7 +12,8 @@ enum class ServerInfo: int {
 	VERSION
 };
 
-NotificationManager::NotificationManager(const QString & appName, QObject * parent) :
+using namespace Notification;
+Manager::Manager(const QString & appName, QObject * parent) :
 	QObject(parent),
 	appName(appName),
 	ids()
@@ -20,36 +21,35 @@ NotificationManager::NotificationManager(const QString & appName, QObject * pare
 	start();
 }
 
-NotificationManager::~NotificationManager()
+Manager::~Manager()
 {
 	stop();
 }
 
-bool NotificationManager::ping()
+bool Manager::ping()
 {
 	if(INotifications.isNull()) return false;
 	return INotifications->connection().isConnected();
 }
 
-const QString & NotificationManager::getAppName()
+const QString & Manager::getAppName()
 {
 	return appName;
 }
 
-QSharedPointer<Notification> NotificationManager::createNotification(const QString & summary, const QString & body,
-        const QString & iconName)
+EventPtr Manager::createNotification(const QString & summary, const QString & body,
+                                     const QString & iconName)
 {
-	QSharedPointer<Notification> ntf = QSharedPointer<Notification>(
-	                                       new Notification(*this, summary, body, iconName));
+	EventPtr ntf = EventPtr(new Event(*this, summary, body, iconName));
 	return ntf;
 }
 
-void NotificationManager::addNotification(QSharedPointer<Notification> notif, quint32 id)
+void Manager::addNotification(EventPtr notif, quint32 id)
 {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	if(ids.contains(id)) {
 		auto ntf = ids.take(id);
-		ntf->onNotificationClosed(0);
+		ntf->emitClosed(0);
 	}
 	ids.insert(id, notif);
 #else
@@ -57,21 +57,21 @@ void NotificationManager::addNotification(QSharedPointer<Notification> notif, qu
 #endif
 }
 
-void NotificationManager::onActionInvoked(quint32 id, const QString & actionKey)
+void Manager::onActionInvoked(quint32 id, const QString & actionKey)
 {
 	if(! ids.contains(id) || ids.value(id).isNull()) return;
 	ids.value(id)->emitAction(actionKey);
 }
 
-void NotificationManager::onNotificationClosed(quint32 id, quint32 reason)
+void Manager::onNotificationClosed(quint32 id, quint32 reason)
 {
 	if(INotifications.isNull()) return;
 	if(! ids.contains(id) || ids.value(id).isNull()) return;
-	QSharedPointer<Notification> notif  = ids.take(id);
+	EventPtr notif  = ids.take(id);
 	notif->emitClosed(reason);
 }
 
-bool NotificationManager::start()
+bool Manager::start()
 {
 	if(!QDBusConnection::sessionBus().isConnected())
 		return false;
@@ -84,10 +84,10 @@ bool NotificationManager::start()
 	                     ));
 	if(INotifications->isValid()) {
 		connect(INotifications.get(), &org::freedesktop::Notifications::ActionInvoked,
-		        this, &NotificationManager::onActionInvoked);
+		        this, &Manager::onActionInvoked);
 
 		connect(INotifications.get(), &org::freedesktop::Notifications::NotificationClosed,
-		        this, &NotificationManager::onNotificationClosed);
+		        this, &Manager::onNotificationClosed);
 		return true;
 	} else {
 		INotifications.clear();
@@ -96,7 +96,7 @@ bool NotificationManager::start()
 }
 
 
-void NotificationManager::stop()
+void Manager::stop()
 {
 	if(INotifications.isNull()) return;
 
@@ -108,7 +108,7 @@ void NotificationManager::stop()
 }
 
 
-QStringList NotificationManager::getServerCaps()
+QStringList Manager::getServerCaps()
 {
 	if(INotifications.isNull()) return QStringList();
 
@@ -122,7 +122,7 @@ QStringList NotificationManager::getServerCaps()
 	return QStringList();
 }
 
-bool NotificationManager::getServerInfo(QString & name, QString & vendor, QString & version)
+bool Manager::getServerInfo(QString & name, QString & vendor, QString & version)
 {
 	if(INotifications.isNull()) return false;
 
@@ -139,8 +139,8 @@ bool NotificationManager::getServerInfo(QString & name, QString & vendor, QStrin
 	return false;
 }
 
-bool NotificationManager::show(
-    const QSharedPointer<Notification>& notif,
+bool Manager::show(
+    const EventPtr& notif,
     quint32 & id)
 {
 	if(INotifications.isNull()) return false;
@@ -167,7 +167,7 @@ bool NotificationManager::show(
 	return true;
 }
 
-bool NotificationManager::close(quint32 & id)
+bool Manager::close(quint32 & id)
 {
 	if(id == 0) return true;
 	if(INotifications.isNull()) return false;
@@ -178,7 +178,7 @@ bool NotificationManager::close(quint32 & id)
 	return reply.isValid();
 }
 
-QVariant NotificationManager::serializeImage(const QImage & img)
+QVariant Manager::serializeImage(const QImage & img)
 {
 	QDBusArgument icon;
 	icon.beginStructure();

@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ORGFREEDESKTOPNOTIFICATIONSINTERFACE_H
-#define ORGFREEDESKTOPNOTIFICATIONSINTERFACE_H
+#ifndef INTERFACE_H
+#define INTERFACE_H
 
 #include <QDBusAbstractInterface>
 #include <QDBusPendingReply>
@@ -55,4 +55,4 @@ class org::freedesktop::Notifications : public QDBusAbstractInterface
 	    void NotificationClosed(quint32 id, quint32 reason);
 };
 
-#endif // ORGFREEDESKTOPNOTIFICATIONSINTERFACE_H
+#endif // INTERFACE_P_H

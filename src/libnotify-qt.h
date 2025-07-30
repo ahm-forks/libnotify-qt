@@ -15,21 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NOTIFICATION_H
-#define NOTIFICATION_H
+#ifndef LIBNOTIFY_QT_H
+#define LIBNOTIFY_QT_H
 
 #include <QObject>
 #include <QHash>
 #include <QStringList>
 #include <QVariantMap>
 #include <QSharedPointer>
-
-enum class NotificationUrgency: quint8
-{
-    LOW,
-    NORMAL,
-    CRITICAL
-};
 
 namespace org
 {
@@ -39,9 +32,21 @@ namespace org
 	}
 }
 
-class Q_DECL_EXPORT Notification;
+namespace Notification {
+    class Manager;
+    class Event;
+    enum class Urgency: quint8;
+    using EventPtr = QSharedPointer<Event>;
+}
 
-class Q_DECL_EXPORT NotificationManager: public QObject {
+enum class Notification::Urgency: quint8
+{
+    LOW,
+    NORMAL,
+    CRITICAL
+};
+
+class Q_DECL_EXPORT Notification::Manager: public QObject {
     Q_OBJECT
 
 public:
@@ -50,8 +55,8 @@ public:
 public:
     const QString appName;
 
-    NotificationManager(const QString & appName, QObject * parent = 0);
-    ~NotificationManager();
+    Manager(const QString & appName, QObject * parent = 0);
+    ~Manager();
 
     bool start();
     void stop();
@@ -59,28 +64,28 @@ public:
     const QString & getAppName();
     QStringList getServerCaps();
     bool getServerInfo(QString & name, QString & vendor, QString & version);
-    QSharedPointer<Notification> createNotification(const QString & summary, const QString & body = QString(),
+    EventPtr createNotification(const QString & summary, const QString & body = QString(),
                                                     const QString & iconName = QString());
-    bool show(const QSharedPointer<Notification> & notif, quint32 & id);
+    bool show(const EventPtr & notif, quint32 & id);
     bool close(quint32 & id);
 
 
 private:
     QSharedPointer<org::freedesktop::Notifications> INotifications = nullptr;
-    QHash<quint32, QSharedPointer<Notification>> ids;
-    void addNotification(QSharedPointer<Notification> notif, quint32 id);
+    QHash<quint32, EventPtr> ids;
+    void addNotification(EventPtr notif, quint32 id);
 
 private slots:
     void onNotificationClosed(quint32 id, quint32 reason);
     void onActionInvoked(quint32 id, const QString & actionKey);
 };
 
-class Q_DECL_EXPORT Notification : public QObject, public QEnableSharedFromThis<Notification>
+class Q_DECL_EXPORT Notification::Event : public QObject, public QEnableSharedFromThis<Event>
 {
     Q_OBJECT
 
 public:
-        Notification(NotificationManager& parent,
+        Event(Manager& parent,
                      const QString & summary,
                      const QString & body = QString(),
                      const QString & iconName = QString());
@@ -89,27 +94,27 @@ public:
 		bool close();
 		bool autoDelete() const;
 
-		Notification* setAutoDelete(bool autoDelete);
-		Notification* setSummary(const QString & summary);
-		Notification* setBody(const QString & body);
-		Notification* setIconName(const QString & iconName);
-		Notification* setTimeout(qint32 timeout);
-		Notification* setUrgency(NotificationUrgency urgency);
-		Notification* setCategory(const QString & category);
-        Notification* setIconFromPixmap(const QPixmap & img);
-        Notification* setIconFromImage(const QImage & img);
-		Notification* setLocation(qint32 x, qint32 y);
+        Event* setAutoDelete(bool autoDelete);
+        Event* setSummary(const QString & summary);
+        Event* setBody(const QString & body);
+        Event* setIconName(const QString & iconName);
+        Event* setTimeout(qint32 timeout);
+        Event* setUrgency(Urgency urgency);
+        Event* setCategory(const QString & category);
+        Event* setIconFromPixmap(const QPixmap & img);
+        Event* setIconFromImage(const QImage & img);
+        Event* setLocation(qint32 x, qint32 y);
 
-		Notification* setHint(const QString & key, const QVariant & value);
-		Notification* setHintInt32(const QString & key, qint32 value);
-		Notification* setHintDouble(const QString & key, double value);
-		Notification* setHintString(const QString & key, const QString & value);
-		Notification* setHintByte(const QString & key, char value);
-		Notification* setHintByteArray(const QString & key, const QByteArray & value);
-		Notification* clearHints();
+        Event* setHint(const QString & key, const QVariant & value);
+        Event* setHintInt32(const QString & key, qint32 value);
+        Event* setHintDouble(const QString & key, double value);
+        Event* setHintString(const QString & key, const QString & value);
+        Event* setHintByte(const QString & key, char value);
+        Event* setHintByteArray(const QString & key, const QByteArray & value);
+        Event* clearHints();
 
-		Notification* addAction(const QString & actionKey, const QString & label);
-		Notification* clearActions();
+        Event* addAction(const QString & actionKey, const QString & label);
+        Event* clearActions();
         void emitClosed(quint32 reason);
         void emitAction(const QString & actionKey);
 
@@ -121,7 +126,7 @@ public:
         const QStringList & actions();
         const QVariantMap & hints();
     private:
-        NotificationManager& mgr;
+        Manager& mgr;
 		quint32 m_id;
 		QString m_summary;
 		QString m_body;

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "OrgFreedesktopNotificationsInterface.h"
+#include "Interface.h"
 
 org::freedesktop::Notifications::Notifications(const QString & service,
         const QString & path,
