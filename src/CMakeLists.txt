@@ -1,72 +1,64 @@
 set(PUBH libnotify-qt.h)
 
 set(SRCS
+	${PUBH}
+
 	Interface.h Interface.cpp
 
-	Manager.cpp Event.cpp
+	libnotify-qt_p.h Manager.cpp Event.cpp
 )
 
-set(Qt5Libs
-	Qt5::Core
-	Qt5::DBus
-	Qt5::Gui
-)
+foreach(SELECTED ${QT_MAJOR_ENABLED})
+	set(${PROJECT_NAME}${SELECTED}_TARGETS)
+	set(Qt${SELECTED}Libs
+		Qt${SELECTED}::Core
+		Qt${SELECTED}::DBus
+		Qt${SELECTED}::Gui
+	)
+	set(BASENAME ${PROJECT_NAME}${SELECTED})
 
-add_library(${PROJECT_NAME}5_static STATIC ${PUBH} ${SRCS})
-target_link_libraries(${PROJECT_NAME}5_static PUBLIC ${Qt5Libs})
+	if(BUILD_STATIC)
+		add_library(${BASENAME}_static STATIC ${SRCS})
 
-add_library(${PROJECT_NAME}5 SHARED ${PUBH} ${SRCS})
-target_link_libraries(${PROJECT_NAME}5 PUBLIC ${Qt5Libs})
-install(
-	TARGETS ${PROJECT_NAME}5 ${PROJECT_NAME}5_static
-	EXPORT ${PROJECT_NAME}5Targets
-)
-install(EXPORT ${PROJECT_NAME}5Targets
-        FILE ${PROJECT_NAME}5Targets.cmake
-        NAMESPACE ${PROJECT_NAME}::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-)
-export(EXPORT ${PROJECT_NAME}5Targets
-       FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}5Targets.cmake"
-       NAMESPACE ${PROJECT_NAME}::
-)
+		target_link_libraries(${BASENAME}_static PUBLIC ${Qt${SELECTED}Libs})
+		target_include_directories(${BASENAME}_static INTERFACE
+		  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+		  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+		)
 
+		list(APPEND ${BASENAME}_TARGETS ${BASENAME}_static)
+	endif()
 
-set_target_properties(${PROJECT_NAME}5 PROPERTIES
-  VERSION "${PROJECT_VERSION}"
-  SOVERSION "${NotifyQt_MAJOR_VERSION}.${NotifyQt_MINOR_VERSION}"
-)
+	if(BUILD_SHARED)
+		add_library(${BASENAME} SHARED ${SRCS})
 
-if (Qt6_FOUND)
-set(Qt6Libs
-	Qt6::Core
-	Qt6::DBus
-	Qt6::Gui
-)
-add_library(${PROJECT_NAME}_static STATIC ${PUBH} ${SRCS})
-target_link_libraries(${PROJECT_NAME}_static PUBLIC ${Qt6Libs})
+		target_link_libraries(${BASENAME} PUBLIC ${Qt${SELECTED}Libs})
+		target_include_directories(${BASENAME} INTERFACE
+		  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+		  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+		)
+		set_target_properties(${BASENAME} PROPERTIES
+			VERSION "${PROJECT_VERSION}"
+			SOVERSION "${NotifyQt_MAJOR_VERSION}.${NotifyQt_MINOR_VERSION}"
+		)
+		list(APPEND ${BASENAME}_TARGETS ${BASENAME})
+	endif()
 
-add_library(${PROJECT_NAME} SHARED ${PUBH} ${SRCS})
-set_target_properties(${PROJECT_NAME}
-PROPERTIES
-  VERSION "${PROJECT_VERSION}"
-  SOVERSION "${NotifyQt_MAJOR_VERSION}.${NotifyQt_MINOR_VERSION}"
-)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${Qt6Libs})
-install(
-	TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_static
-	EXPORT ${PROJECT_NAME}Targets
-)
-install(EXPORT ${PROJECT_NAME}Targets
-        FILE ${PROJECT_NAME}Targets.cmake
-        NAMESPACE ${PROJECT_NAME}::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-)
-export(EXPORT ${PROJECT_NAME}Targets
-       FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Targets.cmake"
-       NAMESPACE ${PROJECT_NAME}::
-)
-endif()
+	install(
+		TARGETS ${${BASENAME}_TARGETS}
+		EXPORT ${BASENAME}Targets
+	)
+
+	install(EXPORT ${BASENAME}Targets
+		    FILE ${PROJECT_NAME}Targets.cmake
+		    NAMESPACE ${BASENAME}::
+		    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${BASENAME}
+	)
+	export(EXPORT ${BASENAME}Targets
+		   FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/${BASENAME}Targets.cmake"
+		   NAMESPACE ${BASENAME}::
+	)
+endforeach()
 
 install(
 	FILES ${PUBH}

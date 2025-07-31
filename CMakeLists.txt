@@ -21,25 +21,35 @@ include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 include(FeatureSummary)
 
-find_package(Qt6 COMPONENTS Core DBus Gui)
-find_package(Qt5 REQUIRED COMPONENTS Core DBus Gui)
+option(BUILD_STATIC "Build the static library" ON)
+option(BUILD_SHARED "Build the shared library" ON)
+
+set(QT_MAJOR_SUPPORTED 5 6)
+set(QT_MAJOR_ENABLED)
+foreach(SELECTED ${QT_MAJOR_SUPPORTED})
+	option(ENABLE_QT${SELECTED} "Build for Qt${SELECTED}" ON)
+endforeach()
+
+block(SCOPE_FOR VARIABLES PROPAGATE QT_MAJOR_ENABLED)
+	foreach(SELECTED ${QT_MAJOR_SUPPORTED})
+		if(ENABLE_QT${SELECTED})
+			list(APPEND QT_MAJOR_ENABLED ${SELECTED})
+		endif()
+	endforeach()
+
+	list(LENGTH QT_MAJOR_ENABLED ENABLED_QTS)
+	if(${ENABLED_QTS} EQUAL 0)
+		message(FATAL_ERROR "At least one Qt Major version should be enabled.")
+	endif()
+endblock()
+
+if(NOT (BUILD_SHARED OR BUILD_STATIC))
+	message(FATAL_ERROR "Either BUILD_SHARED or BUILD_STATIC must be enabled.")
+endif()
+
+foreach(SELECTED ${QT_MAJOR_ENABLED})
+	find_package(Qt${SELECTED} COMPONENTS Core DBus Gui)
+endforeach()
 
 add_subdirectory(src)
 add_subdirectory(data)
-
-configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-)
-
-write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-  VERSION "${version}"
-  COMPATIBILITY AnyNewerVersion
-)
-
-install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-)

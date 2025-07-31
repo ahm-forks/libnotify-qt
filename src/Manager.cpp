@@ -1,4 +1,4 @@
-#include "libnotify-qt.h"
+#include "libnotify-qt_p.h"
 
 #include <QImage>
 #include <QDBusInterface>

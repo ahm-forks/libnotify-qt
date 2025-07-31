@@ -15,7 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "libnotify-qt.h"
+
+#include "libnotify-qt_p.h"
 
 #include <QImage>
 #include <QPixmap>

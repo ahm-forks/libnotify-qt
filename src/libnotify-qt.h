@@ -24,6 +24,10 @@
 #include <QVariantMap>
 #include <QSharedPointer>
 
+#ifndef LIBNOTIFY_QT_EXPORT
+#define LIBNOTIFY_QT_EXPORT Q_DECL_IMPORT
+#endif
+
 namespace org
 {
 	namespace freedesktop
@@ -33,9 +37,9 @@ namespace org
 }
 
 namespace Notification {
-    class Manager;
-    class Event;
-    enum class Urgency: quint8;
+    class LIBNOTIFY_QT_EXPORT Manager;
+    class LIBNOTIFY_QT_EXPORT Event;
+    enum class LIBNOTIFY_QT_EXPORT Urgency: quint8;
     using EventPtr = QSharedPointer<Event>;
 }
 
@@ -46,7 +50,7 @@ enum class Notification::Urgency: quint8
     CRITICAL
 };
 
-class Q_DECL_EXPORT Notification::Manager: public QObject {
+class Notification::Manager: public QObject {
     Q_OBJECT
 
 public:
@@ -80,7 +84,7 @@ private slots:
     void onActionInvoked(quint32 id, const QString & actionKey);
 };
 
-class Q_DECL_EXPORT Notification::Event : public QObject, public QEnableSharedFromThis<Event>
+class Notification::Event : public QObject, public QEnableSharedFromThis<Event>
 {
     Q_OBJECT
 
