@@ -17,12 +17,15 @@
 
 
 #include "libnotify-qt_p.h"
+#include "logging.h"
 
 #include <QImage>
 #include <QPixmap>
 #include <QHash>
 
 using namespace Notification;
+
+Q_LOGGING_CATEGORY(Levt, "qt.xdg.notification.event");
 
 Event::Event(
     Manager& parent,
@@ -38,6 +41,7 @@ Event::Event(
 	m_timeout(5000),
 	m_autoDelete(true)
 {
+	qCDebug(Levt) << "Notification created (Manager: " << &mgr << ", instance: " << this << ")";
 	setUrgency(Urgency::NORMAL);
 }
 
@@ -199,6 +203,8 @@ void Event::emitClosed(ClosingReason reason)
 	emit closed(reason);
 	if(m_autoDelete)
 		deleteLater();
+
+	qCDebug(Levt) << "Notification closed (Manager: " << &mgr << ", instance: " << this << ")";
 }
 
 void Event::emitAction(const QString & actionKey)

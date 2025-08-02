@@ -5,6 +5,8 @@ set(SRCS
 
 	Interface.h Interface.cpp
 
+	logging.h
+
 	libnotify-qt_p.h Manager.cpp Event.cpp
 )
 

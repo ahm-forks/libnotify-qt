@@ -5,6 +5,10 @@
 #include <QDBusConnection>
 
 #include "Interface.h"
+#include "logging.h"
+
+
+Q_LOGGING_CATEGORY(Lmgr, "qt.xdg.notification.manager");
 
 enum class ServerInfo: int {
 	NAME = 0,
@@ -18,6 +22,7 @@ Manager::Manager(const QString & appName, QObject * parent) :
 	appName(appName),
 	ids()
 {
+	qCDebug(Lmgr) << "Creating Xdg Notification Manager (instance: " << this << ", app: " << appName << ")";
 	start();
 }
 
@@ -67,6 +72,8 @@ void Manager::onNotificationClosed(quint32 id, quint32 reason)
 {
 	if(INotifications.isNull()) return;
 	if(! ids.contains(id) || ids.value(id).isNull()) return;
+
+	qCDebug(Lmgr) << "Closed notification (manager: " << this << ", id: " << id << ", reason: " <<  reason << ")";
 	EventPtr notif  = ids.take(id);
 	notif->emitClosed((ClosingReason) reason);
 }
@@ -76,6 +83,7 @@ bool Manager::start()
 	if(!QDBusConnection::sessionBus().isConnected())
 		return false;
 
+	qCDebug(Lmgr) << "Connected to session bus... (manager: " << this << ")";
 	INotifications = QSharedPointer<org::freedesktop::Notifications>(
 	                     new org::freedesktop::Notifications(
 	                         "org.freedesktop.Notifications",
@@ -133,6 +141,7 @@ bool Manager::getServerInfo(QString & name, QString & vendor, QString & version)
 		name = reply.argumentAt((int)ServerInfo::NAME).toString();
 		vendor = reply.argumentAt((int)ServerInfo::VENDOR).toString();
 		version = reply.argumentAt((int)ServerInfo::VENDOR).toString();
+		qCDebug(Lmgr) << "Server Info (manager: " << this << ", name: " << name << ", vendor: " << vendor << ", version: " << version << ")";
 		return true;
 	}
 
@@ -173,6 +182,7 @@ bool Manager::close(quint32 & id)
 	if(INotifications.isNull()) return false;
 	if(! ids.contains(id) || ids.value(id).isNull()) return false;
 
+	qCDebug(Lmgr) << "Closing notification (manager: " << this << ", id: " << id << ")";
 	QDBusPendingReply<> reply = INotifications->closeNotification(id);
 	reply.waitForFinished();
 	return reply.isValid();
