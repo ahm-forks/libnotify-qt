@@ -20,7 +20,7 @@ foreach(SELECTED ${QT_MAJOR_ENABLED})
 	if(BUILD_STATIC)
 		add_library(${BASENAME}_static STATIC ${SRCS})
 
-		target_link_libraries(${BASENAME}_static PUBLIC ${Qt${SELECTED}Libs})
+		target_link_libraries(${BASENAME}_static PRIVATE ${Qt${SELECTED}Libs})
 		target_include_directories(${BASENAME}_static INTERFACE
 		  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 		  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
@@ -32,7 +32,7 @@ foreach(SELECTED ${QT_MAJOR_ENABLED})
 	if(BUILD_SHARED)
 		add_library(${BASENAME} SHARED ${SRCS})
 
-		target_link_libraries(${BASENAME} PUBLIC ${Qt${SELECTED}Libs})
+		target_link_libraries(${BASENAME} PRIVATE ${Qt${SELECTED}Libs})
 		target_include_directories(${BASENAME} INTERFACE
 		  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 		  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>

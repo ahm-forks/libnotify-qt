@@ -1,8 +1,0 @@
-INCLUDEPATH += @CMAKE_INSTALL_PREFIX@/include/libnotify-qt
-
-static|staticlib {
-	QT += dbus
-	LIBS += @CMAKE_INSTALL_PREFIX@/lib/libnotify-qt_static.a
-} else {
-	LIBS += -L@CMAKE_INSTALL_PREFIX@/lib -lnotify-qt
-}

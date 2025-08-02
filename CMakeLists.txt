@@ -11,15 +11,23 @@ project(notify-qt
     LANGUAGES CXX
 )
 
+find_package(ECM REQUIRED NO_MODULE)
+
+list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}")
+
 set(CMAKE_AUTOMOC ON)
 set(QT_MINIMUM_VERSION "5.15.2")
+set(KDE_INSTALL_USE_QT_SYS_PATHS OFF)
 
+include(QtPathFinder)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 include(FeatureSummary)
+include(ECMGeneratePriFile)
+include(ECMGeneratePkgConfigFile)
+include(ECMUninstallTarget)
 
 option(BUILD_STATIC "Build the static library" ON)
 option(BUILD_SHARED "Build the shared library" ON)
@@ -47,8 +55,9 @@ if(NOT (BUILD_SHARED OR BUILD_STATIC))
 	message(FATAL_ERROR "Either BUILD_SHARED or BUILD_STATIC must be enabled.")
 endif()
 
+set(QT_REQUIRED_COMPONENTS Core DBus Gui)
 foreach(SELECTED ${QT_MAJOR_ENABLED})
-	find_package(Qt${SELECTED} COMPONENTS Core DBus Gui)
+	find_package(Qt${SELECTED} COMPONENTS ${QT_REQUIRED_COMPONENTS})
 endforeach()
 
 add_subdirectory(src)
