@@ -92,8 +92,9 @@ private:
 	void addNotification(EventPtr notif, quint32 id);
 
 private slots:
-	void onNotificationClosed(quint32 id, quint32 reason);
 	void onActionInvoked(quint32 id, const QString & actionKey);
+	void onActivationToken(quint32 id, const QString & token);
+	void onNotificationClosed(quint32 id, quint32 reason);
 };
 
 class Notification::Event : public QObject, public QEnableSharedFromThis<Event>
@@ -133,6 +134,7 @@ public:
 		Event* clearActions();
 		void emitClosed(ClosingReason reason);
 		void emitAction(const QString & actionKey);
+		void emitToken(const QString & token);
 
 	public:
 		quint32   timeout();
@@ -156,6 +158,7 @@ public:
 	signals:
 		void closed(ClosingReason reason);
 		void actionInvoked(const QString & actionKey);
+		void activationToken(const QString & token);
 };
 
 #endif // NOTIFICATION_H

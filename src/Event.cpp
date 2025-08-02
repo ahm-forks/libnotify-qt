@@ -211,3 +211,8 @@ void Event::emitAction(const QString & actionKey)
 {
 	emit actionInvoked(actionKey);
 }
+
+void Event::emitToken(const QString & token)
+{
+	emit activationToken(token);
+}

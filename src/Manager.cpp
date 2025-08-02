@@ -68,6 +68,12 @@ void Manager::onActionInvoked(quint32 id, const QString & actionKey)
 	ids.value(id)->emitAction(actionKey);
 }
 
+void Manager::onActivationToken(quint32 id, const QString & token)
+{
+	if(! ids.contains(id) || ids.value(id).isNull()) return;
+	ids.value(id)->emitToken(token);
+}
+
 void Manager::onNotificationClosed(quint32 id, quint32 reason)
 {
 	if(INotifications.isNull()) return;
@@ -96,6 +102,9 @@ bool Manager::start()
 
 		connect(INotifications.get(), &org::freedesktop::Notifications::NotificationClosed,
 		        this, &Manager::onNotificationClosed);
+
+		connect(INotifications.get(), &org::freedesktop::Notifications::ActivationToken,
+		        this, &Manager::onActivationToken);
 		return true;
 	} else {
 		INotifications.clear();

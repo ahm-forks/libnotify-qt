@@ -22,9 +22,9 @@
 #include <QDBusPendingReply>
 
 namespace org {
-    namespace freedesktop {
-        class Notifications;
-    }
+	namespace freedesktop {
+		class Notifications;
+	}
 }
 
 class org::freedesktop::Notifications : public QDBusAbstractInterface
@@ -32,9 +32,9 @@ class org::freedesktop::Notifications : public QDBusAbstractInterface
 	Q_OBJECT
 
 	public:
-        Notifications(const QString & service, const QString & path,
+		Notifications(const QString & service, const QString & path,
 											 const QDBusConnection & connection, QObject * parent = 0);
-        ~Notifications();
+		~Notifications();
 
 		static inline const char * staticInterfaceName()
 		{
@@ -51,8 +51,9 @@ class org::freedesktop::Notifications : public QDBusAbstractInterface
 		QDBusPendingReply<QString, QString, QString> getServerInformation();
 
 	signals:
-		void ActionInvoked(quint32 id, const QString &action_key);
-	    void NotificationClosed(quint32 id, quint32 reason);
+		void ActionInvoked(quint32 id, const QString & action_key);
+		void ActivationToken(quint32 id, const QString & token);
+		void NotificationClosed(quint32 id, quint32 reason);
 };
 
 #endif // INTERFACE_P_H
