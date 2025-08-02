@@ -32,117 +32,129 @@ namespace org
 {
 	namespace freedesktop
 	{
-        class Notifications;
+		class Notifications;
 	}
 }
 
 namespace Notification {
-    class LIBNOTIFY_QT_EXPORT Manager;
-    class LIBNOTIFY_QT_EXPORT Event;
-    enum class LIBNOTIFY_QT_EXPORT Urgency: quint8;
-    using EventPtr = QSharedPointer<Event>;
+	class LIBNOTIFY_QT_EXPORT
+		Manager;
+	class LIBNOTIFY_QT_EXPORT
+		Event;
+	enum class LIBNOTIFY_QT_EXPORT
+		Urgency: quint8;
+	enum class LIBNOTIFY_QT_EXPORT
+		ClosingReason: quint32;
+	using EventPtr = QSharedPointer<Event>;
 }
+
+enum class Notification::ClosingReason: quint32 {
+	EXPIRED = 1,   // timeout expired
+	DISMISSED = 2, // dismissed by the user
+	BUSCALL = 3,   // closed using CloseNotification call
+	UNDEFINED = 4  // Undefined/reserved reasons
+};
 
 enum class Notification::Urgency: quint8
 {
-    LOW,
-    NORMAL,
-    CRITICAL
+	LOW,
+	NORMAL,
+	CRITICAL
 };
 
 class Notification::Manager: public QObject {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    static QVariant serializeImage(const QImage & img);
+	static QVariant serializeImage(const QImage & img);
 
 public:
-    const QString appName;
+	const QString appName;
 
-    Manager(const QString & appName, QObject * parent = 0);
-    ~Manager();
+	Manager(const QString & appName, QObject * parent = 0);
+	~Manager();
 
-    bool start();
-    void stop();
-    bool ping();
-    const QString & getAppName();
-    QStringList getServerCaps();
-    bool getServerInfo(QString & name, QString & vendor, QString & version);
-    EventPtr createNotification(const QString & summary, const QString & body = QString(),
-                                                    const QString & iconName = QString());
-    bool show(const EventPtr & notif, quint32 & id);
-    bool close(quint32 & id);
+	bool start();
+	void stop();
+	bool ping();
+	const QString & getAppName();
+	QStringList getServerCaps();
+	bool getServerInfo(QString & name, QString & vendor, QString & version);
+	EventPtr createNotification(const QString & summary, const QString & body = QString(),
+													const QString & iconName = QString());
+	bool show(const EventPtr & notif, quint32 & id);
+	bool close(quint32 & id);
 
 
 private:
-    QSharedPointer<org::freedesktop::Notifications> INotifications = nullptr;
-    QHash<quint32, EventPtr> ids;
-    void addNotification(EventPtr notif, quint32 id);
+	QSharedPointer<org::freedesktop::Notifications> INotifications = nullptr;
+	QHash<quint32, EventPtr> ids;
+	void addNotification(EventPtr notif, quint32 id);
 
 private slots:
-    void onNotificationClosed(quint32 id, quint32 reason);
-    void onActionInvoked(quint32 id, const QString & actionKey);
+	void onNotificationClosed(quint32 id, quint32 reason);
+	void onActionInvoked(quint32 id, const QString & actionKey);
 };
 
 class Notification::Event : public QObject, public QEnableSharedFromThis<Event>
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-        Event(Manager& parent,
-                     const QString & summary,
-                     const QString & body = QString(),
-                     const QString & iconName = QString());
+		Event(Manager& parent,
+					 const QString & summary,
+					 const QString & body = QString(),
+					 const QString & iconName = QString());
 
 		bool show();
 		bool close();
 		bool autoDelete() const;
 
-        Event* setAutoDelete(bool autoDelete);
-        Event* setSummary(const QString & summary);
-        Event* setBody(const QString & body);
-        Event* setIconName(const QString & iconName);
-        Event* setTimeout(qint32 timeout);
-        Event* setUrgency(Urgency urgency);
-        Event* setCategory(const QString & category);
-        Event* setIconFromPixmap(const QPixmap & img);
-        Event* setIconFromImage(const QImage & img);
-        Event* setLocation(qint32 x, qint32 y);
+		Event* setAutoDelete(bool autoDelete);
+		Event* setSummary(const QString & summary);
+		Event* setBody(const QString & body);
+		Event* setIconName(const QString & iconName);
+		Event* setTimeout(qint32 timeout);
+		Event* setUrgency(Urgency urgency);
+		Event* setCategory(const QString & category);
+		Event* setIconFromPixmap(const QPixmap & img);
+		Event* setIconFromImage(const QImage & img);
+		Event* setLocation(qint32 x, qint32 y);
 
-        Event* setHint(const QString & key, const QVariant & value);
-        Event* setHintInt32(const QString & key, qint32 value);
-        Event* setHintDouble(const QString & key, double value);
-        Event* setHintString(const QString & key, const QString & value);
-        Event* setHintByte(const QString & key, char value);
-        Event* setHintByteArray(const QString & key, const QByteArray & value);
-        Event* clearHints();
+		Event* setHint(const QString & key, const QVariant & value);
+		Event* setHintInt32(const QString & key, qint32 value);
+		Event* setHintDouble(const QString & key, double value);
+		Event* setHintString(const QString & key, const QString & value);
+		Event* setHintByte(const QString & key, char value);
+		Event* setHintByteArray(const QString & key, const QByteArray & value);
+		Event* clearHints();
 
-        Event* addAction(const QString & actionKey, const QString & label);
-        Event* clearActions();
-        void emitClosed(quint32 reason);
-        void emitAction(const QString & actionKey);
+		Event* addAction(const QString & actionKey, const QString & label);
+		Event* clearActions();
+		void emitClosed(ClosingReason reason);
+		void emitAction(const QString & actionKey);
 
-    public:
-        quint32   timeout();
-        const QString & summery();
-        const QString & body();
-        const QString & iconName();
-        const QStringList & actions();
-        const QVariantMap & hints();
-    private:
-        Manager& mgr;
+	public:
+		quint32   timeout();
+		const QString & summery();
+		const QString & body();
+		const QString & iconName();
+		const QStringList & actions();
+		const QVariantMap & hints();
+	private:
+		Manager& mgr;
 		quint32 m_id;
 		QString m_summary;
 		QString m_body;
 		QString m_iconName;
 		qint32 m_timeout;
 		QStringList m_actions;
-        QVariantMap m_hints;
+		QVariantMap m_hints;
 
 		bool m_autoDelete;
 
 	signals:
-		void closed(quint32 reason);
+		void closed(ClosingReason reason);
 		void actionInvoked(const QString & actionKey);
 };
 

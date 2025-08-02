@@ -49,7 +49,7 @@ void Manager::addNotification(EventPtr notif, quint32 id)
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	if(ids.contains(id)) {
 		auto ntf = ids.take(id);
-		ntf->emitClosed(0);
+		ntf->emitClosed(ClosingReason::BUSCALL);
 	}
 	ids.insert(id, notif);
 #else
@@ -68,7 +68,7 @@ void Manager::onNotificationClosed(quint32 id, quint32 reason)
 	if(INotifications.isNull()) return;
 	if(! ids.contains(id) || ids.value(id).isNull()) return;
 	EventPtr notif  = ids.take(id);
-	notif->emitClosed(reason);
+	notif->emitClosed((ClosingReason) reason);
 }
 
 bool Manager::start()
@@ -101,7 +101,7 @@ void Manager::stop()
 	if(INotifications.isNull()) return;
 
 	for(auto i = ids.begin(); i != ids.end(); ++i)
-		onNotificationClosed(i.key(), 0);
+		onNotificationClosed(i.key(), (quint32) ClosingReason::BUSCALL);
 
 	disconnect(INotifications.get());
 	INotifications.clear();

@@ -194,7 +194,7 @@ Event* Event::setAutoDelete(bool autoDelete)
 	return this;
 }
 
-void Event::emitClosed(quint32 reason)
+void Event::emitClosed(ClosingReason reason)
 {
 	emit closed(reason);
 	if(m_autoDelete)
