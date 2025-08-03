@@ -1,3 +1,5 @@
+set(MKSPECS_BASE_DIR "${ECM_MKSPECS_INSTALL_DIR}")
+
 foreach(SELECTED ${QT_MAJOR_ENABLED})
 	set(PACKAGE_NAME ${PROJECT_NAME})
 	configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
@@ -26,8 +28,7 @@ foreach(SELECTED ${QT_MAJOR_ENABLED})
 	endforeach()
 
 	qt_path_find(qt${SELECTED}_hostdata HOST_DATA VERSION ${SELECTED} RELATIVE)
-	set(qt${SELECTED}_hostdata "${CMAKE_INSTALL_PREFIX}/${qt${SELECTED}_hostdata}")
-
+	set(ECM_MKSPECS_INSTALL_DIR "${qt${SELECTED}_hostdata}/${MKSPECS_BASE_DIR}")
 	if(BUILD_STATIC)
 		ecm_generate_pri_file(
 			BASE_NAME ${PROJECT_NAME}${SELECTED}-static
@@ -36,7 +37,7 @@ foreach(SELECTED ${QT_MAJOR_ENABLED})
 			INCLUDE_INSTALL_DIRS "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}"
 			FILENAME_VAR pri_filename
 		)
-		install(FILES ${pri_filename} DESTINATION "/${qt${SELECTED}_hostdata}/${ECM_MKSPECS_INSTALL_DIR}")
+		install(FILES ${pri_filename} DESTINATION "${CMAKE_INSTALL_PREFIX}/${ECM_MKSPECS_INSTALL_DIR}")
 
 		ecm_generate_pkgconfig_file(
 			BASE_NAME ${PROJECT_NAME}${SELECTED}-static
@@ -57,7 +58,7 @@ foreach(SELECTED ${QT_MAJOR_ENABLED})
 			INCLUDE_INSTALL_DIRS "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}"
 			FILENAME_VAR pri_filename
 		)
-		install(FILES ${pri_filename} DESTINATION "${qt${SELECTED}_hostdata}/${ECM_MKSPECS_INSTALL_DIR}")
+		install(FILES ${pri_filename} DESTINATION "${CMAKE_INSTALL_PREFIX}/${ECM_MKSPECS_INSTALL_DIR}")
 
 		ecm_generate_pkgconfig_file(
 			BASE_NAME ${PROJECT_NAME}${SELECTED}
@@ -70,3 +71,5 @@ foreach(SELECTED ${QT_MAJOR_ENABLED})
 		)
 	endif()
 endforeach()
+
+set(ECM_MKSPECS_INSTALL_DIR "${MKSPECS_BASE_DIR}")
