@@ -10,6 +10,7 @@ project(notify-qt
     HOMEPAGE_URL "https://github.com/ahm-forks/libnotify-qt"
     LANGUAGES CXX
 )
+set(PROJECT_NAME_CAMELCASE notifyQt)
 
 find_package(ECM REQUIRED NO_MODULE)
 
