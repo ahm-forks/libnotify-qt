@@ -3,6 +3,6 @@
 
 #include <QtCore/qglobal.h>
 #define LIBNOTIFY_QT_EXPORT Q_DECL_EXPORT
-#include "libnotify-qt.h"
+#include "include/libnotify-qt.h"
 
 #endif // NOTIFY_QT_GLOBAL_H

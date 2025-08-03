@@ -1,4 +1,4 @@
-set(PUBH libnotify-qt.h)
+set(PUBH include/libnotify-qt.h)
 
 set(SRCS
 	${PUBH}
