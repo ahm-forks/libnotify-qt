@@ -197,16 +197,25 @@ bool Manager::close(quint32 & id)
 	return reply.isValid();
 }
 
-QVariant Manager::serializeImage(const QImage & img)
+QVariant Manager::serializeImage(const QImage & src)
 {
+
+	QImage img = src.convertToFormat(QImage::Format_ARGB32);
+	/* QImage serializes an image without alpha channel
+	 * with alpha channel set to 255 but reports
+	 * it without alpha channel sometimes.
+	 * So we explicitly convert it to ARGB32 to avoid
+	 * encoding issue.
+	 */
+
 	QDBusArgument icon;
 	icon.beginStructure();
 	icon << img.width()
 	     << img.height()
 	     << (qint32) img.bytesPerLine() // rowstride
-	     << img.hasAlphaChannel()
+	     << true // has alpha channel (always true for ARGB32)
 	     << 8 // bits_per_sample, always 8
-	     << (img.hasAlphaChannel()?4:3)
+	     << 4 // channel count, 4 for ARGB32
 	     << QByteArray::fromRawData((const char*) img.constBits(), img.sizeInBytes());
 	icon.endStructure();
 	return QVariant::fromValue(icon);
