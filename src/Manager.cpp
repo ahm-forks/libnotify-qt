@@ -117,8 +117,8 @@ void Manager::stop()
 {
 	if(INotifications.isNull()) return;
 
-	for(auto i = ids.begin(); i != ids.end(); ++i)
-		onNotificationClosed(i.key(), (quint32) ClosingReason::BUSCALL);
+	for(quint32 v: ids.keys())
+		onNotificationClosed(v, (quint32) ClosingReason::BUSCALL);
 
 	disconnect(INotifications.get());
 	INotifications.clear();
