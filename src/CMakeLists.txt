@@ -10,6 +10,21 @@ set(SRCS
 	libnotify-qt_p.h Manager.cpp Event.cpp
 )
 
+if(NOTIFYQT_SUBPROJECT)
+	add_library(${PROJECT_NAME} STATIC ${SRCS})
+	target_link_libraries(${PROJECT_NAME} PRIVATE
+		Qt${QT_VERSION_MAJOR}::Core
+		Qt${QT_VERSION_MAJOR}::DBus
+		Qt${QT_VERSION_MAJOR}::Gui
+	)
+	target_include_directories(${PROJECT_NAME} INTERFACE
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	)
+	set(NOTIFYQT ${PROJECT_NAME} CACHE INTERNAL "libnotify-qt subproject target")
+	set(NOTIFYQT_STATIC ${PROJECT_NAME} CACHE INTERNAL "libnotify-qt subproject target")
+	return()
+endif()
+
 foreach(SELECTED ${QT_MAJOR_ENABLED})
 	set(${PROJECT_NAME}${SELECTED}_TARGETS)
 	set(Qt${SELECTED}Libs

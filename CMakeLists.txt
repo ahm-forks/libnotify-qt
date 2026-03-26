@@ -10,6 +10,18 @@ project(notify-qt
     HOMEPAGE_URL "https://github.com/ahm-forks/libnotify-qt"
     LANGUAGES CXX
 )
+
+set(CMAKE_AUTOMOC ON)
+set(QT_MINIMUM_VERSION "5.15.2")
+
+set(QT_REQUIRED_COMPONENTS Core DBus Gui)
+if(NOT CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS ${QT_REQUIRED_COMPONENTS})
+	set(NOTIFYQT_SUBPROJECT ON)
+	add_subdirectory(src)
+	return()
+endif()
+
 set(PROJECT_NAME_CAMELCASE notifyQt)
 
 find_package(ECM REQUIRED NO_MODULE)
@@ -17,8 +29,6 @@ find_package(ECM REQUIRED NO_MODULE)
 list(APPEND CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-set(CMAKE_AUTOMOC ON)
-set(QT_MINIMUM_VERSION "5.15.2")
 set(KDE_INSTALL_USE_QT_SYS_PATHS OFF)
 
 include(QtPathFinder)
@@ -56,7 +66,6 @@ if(NOT (BUILD_SHARED OR BUILD_STATIC))
 	message(FATAL_ERROR "Either BUILD_SHARED or BUILD_STATIC must be enabled.")
 endif()
 
-set(QT_REQUIRED_COMPONENTS Core DBus Gui)
 foreach(SELECTED ${QT_MAJOR_ENABLED})
 	find_package(Qt${SELECTED} COMPONENTS ${QT_REQUIRED_COMPONENTS})
 endforeach()
