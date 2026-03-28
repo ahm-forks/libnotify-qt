@@ -16,6 +16,11 @@ enum class ServerInfo: int {
 	VERSION
 };
 
+static constexpr int operator+(ServerInfo s)
+{
+	return static_cast<int>(s);
+}
+
 using namespace Notification;
 Manager::Manager(const QString & appName, QObject * parent) :
 	QObject(parent),
@@ -147,9 +152,9 @@ bool Manager::getServerInfo(QString & name, QString & vendor, QString & version)
 	reply.waitForFinished();
 
 	if(reply.isValid()) {
-		name = reply.argumentAt((int)ServerInfo::NAME).toString();
-		vendor = reply.argumentAt((int)ServerInfo::VENDOR).toString();
-		version = reply.argumentAt((int)ServerInfo::VENDOR).toString();
+		name = reply.argumentAt(+ ServerInfo::NAME).toString();
+		vendor = reply.argumentAt(+ ServerInfo::VENDOR).toString();
+		version = reply.argumentAt(+ ServerInfo::VERSION).toString();
 		qCDebug(Lmgr) << "Server Info (manager: " << this << ", name: " << name << ", vendor: " << vendor << ", version: " << version << ")";
 		return true;
 	}
