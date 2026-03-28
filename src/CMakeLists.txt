@@ -67,13 +67,11 @@ foreach(SELECTED ${QT_MAJOR_ENABLED})
 	)
 
 	install(EXPORT ${BASENAME}Targets
-		    FILE ${PROJECT_NAME}Targets.cmake
-		    NAMESPACE ${BASENAME}::
+		    FILE ${BASENAME}Targets.cmake
 		    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${BASENAME}
 	)
 	export(EXPORT ${BASENAME}Targets
 		   FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/${BASENAME}Targets.cmake"
-		   NAMESPACE ${BASENAME}::
 	)
 endforeach()
 
