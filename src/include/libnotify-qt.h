@@ -113,27 +113,27 @@ public:
 		bool close();
 		bool autoDelete() const;
 
-		Event* setAutoDelete(bool autoDelete);
-		Event* setSummary(const QString & summary);
-		Event* setBody(const QString & body);
-		Event* setIconName(const QString & iconName);
-		Event* setTimeout(qint32 timeout);
-		Event* setUrgency(Urgency urgency);
-		Event* setCategory(const QString & category);
-		Event* setIconFromPixmap(const QPixmap & img);
-		Event* setIconFromImage(const QImage & img);
-		Event* setLocation(qint32 x, qint32 y);
+		EventPtr setAutoDelete(bool autoDelete);
+		EventPtr setSummary(const QString & summary);
+		EventPtr setBody(const QString & body);
+		EventPtr setIconName(const QString & iconName);
+		EventPtr setTimeout(qint32 timeout);
+		EventPtr setUrgency(Urgency urgency);
+		EventPtr setCategory(const QString & category);
+		EventPtr setIconFromPixmap(const QPixmap & img);
+		EventPtr setIconFromImage(const QImage & img);
+		EventPtr setLocation(qint32 x, qint32 y);
 
-		Event* setHint(const QString & key, const QVariant & value);
-		Event* setHintInt32(const QString & key, qint32 value);
-		Event* setHintDouble(const QString & key, double value);
-		Event* setHintString(const QString & key, const QString & value);
-		Event* setHintByte(const QString & key, char value);
-		Event* setHintByteArray(const QString & key, const QByteArray & value);
-		Event* clearHints();
+		EventPtr setHint(const QString & key, const QVariant & value);
+		EventPtr setHintInt32(const QString & key, qint32 value);
+		EventPtr setHintDouble(const QString & key, double value);
+		EventPtr setHintString(const QString & key, const QString & value);
+		EventPtr setHintByte(const QString & key, char value);
+		EventPtr setHintByteArray(const QString & key, const QByteArray & value);
+		EventPtr clearHints();
 
-		Event* addAction(const QString & actionKey, const QString & label);
-		Event* clearActions();
+		EventPtr addAction(const QString & actionKey, const QString & label);
+		EventPtr clearActions();
 		void emitClosed(ClosingReason reason);
 		void emitAction(const QString & actionKey);
 		void emitToken(const QString & token);

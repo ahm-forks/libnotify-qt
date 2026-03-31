@@ -50,106 +50,106 @@ bool Event::show()
 	return mgr.show(this->sharedFromThis(), m_id);
 }
 
-Event* Event::setSummary(const QString & summary)
+EventPtr Event::setSummary(const QString & summary)
 {
 	m_summary = summary;
-	return this;
+	return sharedFromThis();
 }
 
-Event* Event::setBody(const QString & body)
+EventPtr Event::setBody(const QString & body)
 {
 	m_body = body;
-	return this;
+	return sharedFromThis();
 }
 
-Event* Event::setIconName(const QString & iconName)
+EventPtr Event::setIconName(const QString & iconName)
 {
 	m_iconName = iconName;
-	return this;
+	return sharedFromThis();
 }
 
-Event* Event::setTimeout(qint32 timeout)
+EventPtr Event::setTimeout(qint32 timeout)
 {
 	m_timeout = timeout;
-	return this;
+	return sharedFromThis();
 }
 
-Event* Event::setUrgency(Urgency urgency)
+EventPtr Event::setUrgency(Urgency urgency)
 {
 	return setHintByte("urgency", (quint8) urgency);
 }
 
-Event* Event::setCategory(const QString & category)
+EventPtr Event::setCategory(const QString & category)
 {
 	return setHintString("category", category);
 }
 
-Event* Event::setIconFromPixmap(const QPixmap & pixmap)
+EventPtr Event::setIconFromPixmap(const QPixmap & pixmap)
 {
 	return setIconFromImage(pixmap.toImage());
 }
 
-Event* Event::setIconFromImage(const QImage & img)
+EventPtr Event::setIconFromImage(const QImage & img)
 {
 	return setHint("image-data", Manager::serializeImage(img));
 }
 
-Event* Event::setLocation(qint32 x, qint32 y)
+EventPtr Event::setLocation(qint32 x, qint32 y)
 {
 	return (setHintInt32("x", x)->setHintInt32("y", y));
 }
 
-Event* Event::setHint(const QString & key, const QVariant & value)
+EventPtr Event::setHint(const QString & key, const QVariant & value)
 {
 	m_hints.insert(key, value);
-	return this;
+	return sharedFromThis();
 }
 
-Event* Event::setHintInt32(const QString & key, qint32 value)
+EventPtr Event::setHintInt32(const QString & key, qint32 value)
 {
 	m_hints.insert(key, value);
-	return this;
+	return sharedFromThis();
 }
 
-Event* Event::setHintDouble(const QString & key, double value)
+EventPtr Event::setHintDouble(const QString & key, double value)
 {
 	m_hints.insert(key, value);
-	return this;
+	return sharedFromThis();
 }
 
-Event* Event::setHintString(const QString & key, const QString & value)
+EventPtr Event::setHintString(const QString & key, const QString & value)
 {
 	m_hints.insert(key, value);
-	return this;
+	return sharedFromThis();
 }
 
-Event* Event::setHintByte(const QString & key, char value)
+EventPtr Event::setHintByte(const QString & key, char value)
 {
 	return setHintByteArray(key, QByteArray(1, value));
 }
 
-Event* Event::setHintByteArray(const QString & key, const QByteArray & value)
+EventPtr Event::setHintByteArray(const QString & key, const QByteArray & value)
 {
 	m_hints.insert(key, value);
-	return this;
+	return sharedFromThis();
 }
 
-Event* Event::clearHints()
+EventPtr Event::clearHints()
 {
 	m_hints.clear();
-	return this;
+	return sharedFromThis();
 }
 
-Event* Event::addAction(const QString & actionKey, const QString & label)
+EventPtr Event::addAction(const QString & actionKey, const QString & label)
 {
 	m_actions << actionKey << label;
-	return this;
+	return sharedFromThis();
 }
 
-Event* Event::clearActions()
+EventPtr Event::clearActions()
 {
 	m_actions.clear();
-	return this;
+	return sharedFromThis();
 }
 
 quint32 Event::timeout()
@@ -192,10 +192,10 @@ bool Event::autoDelete() const
 	return m_autoDelete;
 }
 
-Event* Event::setAutoDelete(bool autoDelete)
+EventPtr Event::setAutoDelete(bool autoDelete)
 {
 	m_autoDelete = autoDelete;
-	return this;
+	return sharedFromThis();
 }
 
 void Event::emitClosed(ClosingReason reason)
