@@ -171,7 +171,7 @@ bool Manager::show(
 	QDBusPendingReply<quint32> reply = INotifications->notify(
 	                                       appName, id,
 	                                       notif->iconName(),
-	                                       notif->summery(),
+	                                       notif->summary(),
 	                                       notif->body(),
 	                                       notif->actions(),
 	                                       notif->hints(),

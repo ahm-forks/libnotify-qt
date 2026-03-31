@@ -101,12 +101,14 @@ class Notification::Event : public QObject, public QEnableSharedFromThis<Event>
 {
 	Q_OBJECT
 
-public:
+private:
+		friend class Manager;
 		Event(Manager& parent,
 					 const QString & summary,
 					 const QString & body = QString(),
 					 const QString & iconName = QString());
 
+public:
 		bool show();
 		bool close();
 		bool autoDelete() const;
@@ -138,7 +140,7 @@ public:
 
 	public:
 		quint32   timeout();
-		const QString & summery();
+		const QString & summary();
 		const QString & body();
 		const QString & iconName();
 		const QStringList & actions();

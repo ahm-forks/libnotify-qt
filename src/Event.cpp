@@ -157,7 +157,7 @@ quint32 Event::timeout()
 	return m_timeout;
 }
 
-const QString & Event::summery()
+const QString & Event::summary()
 {
 	return m_summary;
 }
