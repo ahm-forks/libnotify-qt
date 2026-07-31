@@ -56,7 +56,7 @@ EventPtr Manager::createNotification(const QString & summary, const QString & bo
 
 void Manager::addNotification(EventPtr notif, quint32 id)
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#if QT_VERSION < QT_VERSION_CHECK(6, 9, 0)
 	if(ids.contains(id)) {
 		auto ntf = ids.take(id);
 		ntf->emitClosed(ClosingReason::BUSCALL);
