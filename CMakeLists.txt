@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.5)
 
 set(NotifyQt_MAJOR_VERSION 1)
 set(NotifyQt_MINOR_VERSION 0)
